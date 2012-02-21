@@ -6,13 +6,6 @@ import org.squeryl.PrimitiveTypeMode.transaction
 class PrndServlet extends ScalatraServlet with ScalateSupport {
   PrndSession.connect
   get("/") {
-    <html>
-      <body>
-        <h1>Hello, world!</h1>
-        Say <a href="hello-scalate">hello to Scalate</a>.
-	<p>Or not!</p>
-      </body>
-    </html>
   }
   def dump(title:String, data:String) = {
     contentType = "text/html"
