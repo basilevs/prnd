@@ -1,0 +1,14 @@
+-@ val it: prnd.Publication
+-@ val authors: Iterable[prnd.Author]
+%p
+	Author count:
+	= it.authorCount
+%h2
+	Authors
+-for (a <- authors)
+	%li
+		-view(a)
+
+
+
+
