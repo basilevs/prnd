@@ -1,19 +1,20 @@
+package prnd;
 import org.scalatra.ScalatraServlet
 import java.net.URL
 import org.scalatra.scalate.ScalateSupport
-import org.squeryl.PrimitiveTypeMode.transaction
+import org.squeryl.PrimitiveTypeMode._
 
-class PrndServlet extends ScalatraServlet with ScalateSupport {
-  PrndSession.connect
-  get("/") {
-  }
-  def dump(title:String, data:String) = {
-    contentType = "text/html"
-    layoutTemplate("dummy", "title"->title, "body"->data)
-  }
+class Servlet extends ScalatraServlet with ScalateSupport {
+	// Instantiate database connection through singleton construction
+	// Without this Squeryl will fail to perform database operations
+	Database.getClass()
+	def dump(title:String, data:String) = {
+		contentType = "text/html"
+		layoutTemplate("dummy", "title"->title, "body"->data)
+	}
 	def schemaToString = {
 		val schema = new StringBuffer
-		(new PrndSchema).printDdl(x=>schema.append(x+"\n"))
+		Schema.printDdl(x=>schema.append(x+"\n"))
 		schema.toString
   	}
 	get("/schema") {
@@ -21,36 +22,58 @@ class PrndServlet extends ScalatraServlet with ScalateSupport {
 			dump("Database schema", schemaToString)
  		}
   	}
-	//To be executed inside transaction
-	private def addInitialEntries(s:PrndSchema) {
-		val pr = s.publishers.insert(new Publisher("Phys.Rev.D", 4.964F))
-		val a = s.authors.insert(new Author("Skovpen, Yu.I."))
-		val pn = s.publications.insert(new Publication(pr.id, PublicationType.Article, 100, 2011, "Measurement of partial branching fractions of inclusive charmless B meson decays to K+, K0, and pi+"))
-		s.associate(a, pn)
-	}
 	get("/schemaCreate") {
 		transaction {
-			val schema = new PrndSchema
-			schema.create
-			addInitialEntries(schema)
+			Schema.create
+			Schema.addInitialEntries
 			dump("Database schema", schemaToString)      
+		}
+	}
+	get("/authorById/:id") {
+		val id:Int = params("id").toInt
+		transaction {
+			val author = Schema.authors.lookup(id)
+			author.map { a =>
+				contentType = "text/html"
+				layoutTemplate("authorById", "it" -> a, "publications" -> Schema.publicationToAuthors.right(a), "title" -> a.name)
+			} getOrElse
+			resourceNotFound()
+		}
+	}
+	get("/publicationById/:id") {
+		val id:Int = params("id").toInt
+		transaction {
+			val publication = Schema.publications.lookup(id)
+			publication.map { it =>
+				contentType = "text/html"
+				layoutTemplate("publicationById", "it"->it, "authors" -> Schema.publicationToAuthors.left(it), "title" -> it.title)
+			} getOrElse
+			resourceNotFound()
+		}
+	}
+	get("/authors") {
+		transaction {
+			val authors:Iterable[Author] = from(Schema.authors)(select(_))
+			assert(authors != null)
+			contentType = "text/html"
+			layoutTemplate("authors", "title" -> "Authors", "authors" -> authors)
 		}
 	}
 	get("/schemaDrop") {
 		transaction {
-			val schema = new PrndSchema
-			schema.drop
-			schema.create
-			addInitialEntries(schema)
+			Schema.drop
+			Schema.create
+			Schema.addInitialEntries
 			dump("Database schema reset", schemaToString)      
 		}
 	}
-
-  notFound {
-    // Try to render a ScalateTemplate if no route matched
-    findTemplate(requestPath) map { path =>
-      contentType = "text/html"
-      layoutTemplate(path)
-    } orElse serveStaticResource() getOrElse resourceNotFound() 
-  }
+	notFound {
+		// Try to render a ScalateTemplate if no route matched
+		findTemplate(requestPath) map { path =>
+			contentType = "text/html"
+			layoutTemplate(path)
+		} orElse
+		serveStaticResource() getOrElse 
+		resourceNotFound() 
+	}
 }

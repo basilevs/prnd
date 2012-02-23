@@ -1,28 +1,12 @@
- import org.squeryl.PrimitiveTypeMode._
- import org.squeryl.{Schema, KeyedEntity, ForeignKeyDeclaration}
- import org.squeryl.KeyedEntity
- import org.squeryl.dsl.CompositeKey2
- import org.squeryl.annotations.Column
- import org.squeryl.adapters.MySQLInnoDBAdapter
-
-import org.squeryl.SessionFactory
-
-import org.squeryl.Session
-
-object PrndSession {
-	Class.forName("com.mysql.jdbc.Driver");
-	def connection = java.sql.DriverManager.getConnection("jdbc:mysql://localhost:3306/squeryl?user=prnd")
-	var done = false
-	def connect {
-		if (!done) {
-			done = true
-			SessionFactory.concreteFactory = Some(() => Session.create(connection, new MySQLInnoDBAdapter))
-		}
-	}
-}
+package prnd;
+import org.squeryl.PrimitiveTypeMode._
+import org.squeryl.{Schema => SSchema, KeyedEntity, ForeignKeyDeclaration}
+import org.squeryl.KeyedEntity
+import org.squeryl.dsl.CompositeKey2
+import org.squeryl.annotations.Column
 
 
-class PrndSchema extends Schema {
+object Schema extends SSchema {
 	override def applyDefaultForeignKeyPolicy(foreignKeyDeclaration: ForeignKeyDeclaration) = foreignKeyDeclaration.constrainReference
 	val publishers = table[Publisher]
 	val publications = table[Publication]
@@ -38,9 +22,17 @@ class PrndSchema extends Schema {
 	}
 	publicationToAuthors.leftForeignKeyDeclaration.constrainReference(onDelete cascade)
 	publicationToAuthors.rightForeignKeyDeclaration.constrainReference(onDelete cascade)
+	//To be executed inside transaction
+	def addInitialEntries {
+		val s = this
+		val pr = s.publishers.insert(new Publisher("Phys.Rev.D", 4.964F))
+		val a = s.authors.insert(new Author("Skovpen, Yu.I."))
+		val pn = s.publications.insert(new Publication(pr.id, PublicationType.Article, 100, 2011, "Measurement of partial branching fractions of inclusive charmless B meson decays to K+, K0, and pi+"))
+		s.associate(a, pn)
+	}
 }
 
-class Author(name:String) extends KeyedEntity[Int] {
+class Author(val name:String) extends KeyedEntity[Int] {
 	val id = 0
 }
 
