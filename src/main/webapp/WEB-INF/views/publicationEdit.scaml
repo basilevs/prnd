@@ -5,7 +5,7 @@
 	%h2 Заголовок
 	%input(type="text" size="100" name="title" value={it.title})
 	%h2 Издатель
-	%select
+	%select(name="publisherId")
 		-for (p <- prnd.Publisher.all)
 			%option(value={p.id} selected={p.id == it.publisherId})
 				= p.name

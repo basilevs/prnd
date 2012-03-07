@@ -60,16 +60,16 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 			resourceNotFound()
 		}
 	}
-	def authorsModifiableByCurrentUser = {
-		from(Schema.authors)(select(_))
+	def authorsModifiableByCurrentUser:Set[Author] = {
+		Schema.authors.toSet
 	}
 	get("/publicationById/:id/edit") {
-		val id:Int = params("id").toInt
+		val id:Int = params.getOrElse("id", "0").toInt
 		transaction {
-			val publication = Schema.publications.lookup(id)
-			publication.map { it =>
+			val publication = if (id == 0) Some(getPublication) else Schema.publications.lookup(id)
+			publication.map{it =>
 				contentType = "text/html"
-				val authors:Iterable[Author] = authorsModifiableByCurrentUser
+				val authors:Set[Author] = authorsModifiableByCurrentUser++it.authors
 				val authorFlags = authors.map( a => (a, it.authors.exists(_.id == a.id)))
 				layoutTemplate("publicationEdit", "it"->it, "authors" -> authorFlags)
 			} getOrElse
@@ -77,25 +77,26 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 		}
 	}
 	get("/publicationById/:id/save") {
-		val id:Int = params("id").toInt
+		var id:Int = params.getOrElse("id", "0").toInt
 		transaction {
-			val publication = Schema.publications.lookup(id).getOrElse(
-				new Publication(0, 0, 0, ""))
+			val publication = Schema.publications.lookup(id).getOrElse(getPublication)
 			val it = publication
 			contentType = "text/html"
 			it.title = params("title")
+			val w = new java.io.OutputStreamWriter(java.lang.System.out, "cp866")
+			w.write(it.title+"\n")
+			w.flush
 			it.authorCount = params("authorCount").toInt
-			print("ac:"+it.authorCount+"\n")
+//			print("ac:"+it.authorCount+"\n")
 			Schema.publications.insertOrUpdate(it)
 			assert(it.id != 0)
-			val authors:Iterable[Author] = authorsModifiableByCurrentUser
-			for (a <-authors) {
+			id = it.id
+			val oldAuthors:Set[Author] = it.authors.toSet
+			for (a <-authorsModifiableByCurrentUser) {
 				val fieldName = "a_"+a.id
 				val valStr = params.getOrElse(fieldName, "off")
 				if (valStr=="on" || valStr=="ON") {
-//					org.squeryl.Session.currentSession.setLogger(println(_))
-//					Schema.publicationToAuthors.insertOrUpdate(new Authorship(a, it))
-					if (it.authors.where(ar => ar.id === a.id).headOption.isEmpty)
+					if (!oldAuthors.contains(a))
 						it.authors.associate(a)
 				} else {
 					it.authors.dissociate(a)
@@ -112,11 +113,31 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 			layoutTemplate("authors", "authors" -> authors)
 		}
 	}
+	def getPublication: Publication = {
+		val rv = new Publication(
+			params.getOrElse("publisherId", "0").toInt,
+			params.getOrElse("authorCount", "100").toInt,
+			params.getOrElse("year", "2012").toInt,
+			params.getOrElse("title", "")
+		)
+		rv
+	}
+	def similarPublications(it:Publication) = {
+		val fields:Iterable[String] = it.title.split(" +")
+//		fields.map(println)
+		def similarTitle(title:String) = {
+			fields.size == 0 || !fields.exists(title.indexOf(_) == -1)
+		}
+		for (p <- Schema.publications
+			if similarTitle(p.title)
+			if (it.publisherId == 0 || it.publisherId == p.publisherId)
+		) yield p
+	}
 	get("/publications") {
 		transaction {
-			val publications = from(Schema.publications)(select(_))
 			contentType = "text/html"
-			layoutTemplate("publications", "publications" -> publications)
+			val it = getPublication
+			layoutTemplate("publications", "it"->it, "publications" -> similarPublications(it))
 		}
 	}
 	notFound {

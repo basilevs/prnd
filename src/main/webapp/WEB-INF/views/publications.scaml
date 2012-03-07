@@ -1,5 +1,24 @@
 -@ val publications: Iterable[prnd.Publication]
+-@ val it:prnd.Publication = new prnd.Publication()
 - attributes("title") = "Публикации"
+%h2 Отбор
+%p Введите критерии отбора, чтобы сократить отображаемый список публикаций. Если публикации удовлетворяющей критериям не найдено, появляется возможность добавления новой публикации.
+%form
+	%h3 Заглавие
+	%input(type="text" size=100 name="title" value={it.title})
+	%p Публикации в названии которых встречаются все введенные слова.
+	%h3 Издание
+	%select(name="publisherId")
+		%option(value=0 selected={0 == it.publisherId}) Любое
+		-for (p <- prnd.Publisher.all)
+			%option(value={p.id} selected={p.id == it.publisherId})
+				= p.name
+	%p Публикации выбранного издания
+	%p
+		%input(type="submit" value="Отобрать")
+		%input(type="button" value="Добавить" disabled={publications.size!=0} onclick="this.form.action='publicationById/0/edit'; this.form.submit()")
+		
+%h2 Найденные публикации
 %ul
 	- for (a <- publications)
 		%li
