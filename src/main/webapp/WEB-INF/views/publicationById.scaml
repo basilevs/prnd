@@ -1,10 +1,14 @@
 -@ val it: prnd.Publication
 -@ val authors: Iterable[prnd.Author]
+-@ val editable: Boolean = false
+- attributes("title") = it.title
 %p
-	Author count:
+	%a(href={"/publicationById/"+it.id+"/edit"}) Редактировать
+%p
+	Полное число авторов:
 	= it.authorCount
 %h2
-	Authors
+	Авторы
 -for (a <- authors)
 	%li
 		-view(a)

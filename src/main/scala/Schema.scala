@@ -1,7 +1,6 @@
 package prnd;
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.{Schema => SSchema, KeyedEntity, ForeignKeyDeclaration}
-import org.squeryl.KeyedEntity
 import org.squeryl.dsl.CompositeKey2
 import org.squeryl.annotations.Column
 
@@ -27,7 +26,7 @@ object Schema extends SSchema {
 		val s = this
 		val pr = s.publishers.insert(new Publisher("Phys.Rev.D", 4.964F))
 		val a = s.authors.insert(new Author("Skovpen, Yu.I."))
-		val pn = s.publications.insert(new Publication(pr.id, PublicationType.Article, 100, 2011, "Measurement of partial branching fractions of inclusive charmless B meson decays to K+, K0, and pi+"))
+		val pn = s.publications.insert(new Publication(pr.id, 100, 2011, "Measurement of partial branching fractions of inclusive charmless B meson decays to K+, K0, and pi+"))
 		s.associate(a, pn)
 	}
 }
@@ -44,6 +43,11 @@ class Authorship(val author:Int, val publication:Int) extends KeyedEntity[Compos
 class Publisher(val name: String, val cost:Float) extends KeyedEntity[Int] {
 	val id = 0
 }
+object Publisher {
+	def all = {
+		from(Schema.publishers)(select(_))
+	}
+}
  
 object PublicationType extends Enumeration {
 	type PublicationType = Value
@@ -53,8 +57,9 @@ object PublicationType extends Enumeration {
 	val Article = Value(4, "Article")
 }
 
-class Publication(val publisherId: Int, pubtype: PublicationType.PublicationType, val authorCount:Int, val year: Int, val title: String)  extends KeyedEntity[Int] {
+class Publication(var publisherId: Int, var authorCount:Int, var year: Int, var title: String)  extends KeyedEntity[Int] {
 	val id = 0
+	lazy val authors = Schema.publicationToAuthors.left(this)
 }
 
 

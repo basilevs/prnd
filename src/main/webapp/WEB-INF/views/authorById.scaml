@@ -1,7 +1,8 @@
 -@ val it: prnd.Author
 -@ val publications: Iterable[prnd.Publication]
+- attributes("title") = it.name
 %h2
-	Publications
+	Публикации
 -for (p <- publications)
 	%li
 		-view(p)

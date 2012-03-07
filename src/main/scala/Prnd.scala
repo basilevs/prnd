@@ -1,5 +1,6 @@
 package prnd;
 import org.scalatra.ScalatraServlet
+import org.scalatra.UrlGenerator.url
 import java.net.URL
 import org.scalatra.scalate.ScalateSupport
 import org.squeryl.PrimitiveTypeMode._
@@ -29,13 +30,21 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 			dump("Database schema", schemaToString)      
 		}
 	}
+	get("/schemaDrop") {
+		transaction {
+			Schema.drop
+			Schema.create
+			Schema.addInitialEntries
+			dump("Database schema reset", schemaToString)      
+		}
+	}
 	get("/authorById/:id") {
 		val id:Int = params("id").toInt
 		transaction {
 			val author = Schema.authors.lookup(id)
 			author.map { a =>
 				contentType = "text/html"
-				layoutTemplate("authorById", "it" -> a, "publications" -> Schema.publicationToAuthors.right(a), "title" -> a.name)
+				layoutTemplate("authorById", "it" -> a, "publications" -> Schema.publicationToAuthors.right(a))
 			} getOrElse
 			resourceNotFound()
 		}
@@ -46,25 +55,68 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 			val publication = Schema.publications.lookup(id)
 			publication.map { it =>
 				contentType = "text/html"
-				layoutTemplate("publicationById", "it"->it, "authors" -> Schema.publicationToAuthors.left(it), "title" -> it.title)
+				layoutTemplate("publicationById", "it"->it, "authors" -> Schema.publicationToAuthors.left(it))
 			} getOrElse
 			resourceNotFound()
 		}
+	}
+	def authorsModifiableByCurrentUser = {
+		from(Schema.authors)(select(_))
+	}
+	get("/publicationById/:id/edit") {
+		val id:Int = params("id").toInt
+		transaction {
+			val publication = Schema.publications.lookup(id)
+			publication.map { it =>
+				contentType = "text/html"
+				val authors:Iterable[Author] = authorsModifiableByCurrentUser
+				val authorFlags = authors.map( a => (a, it.authors.exists(_.id == a.id)))
+				layoutTemplate("publicationEdit", "it"->it, "authors" -> authorFlags)
+			} getOrElse
+			resourceNotFound()
+		}
+	}
+	get("/publicationById/:id/save") {
+		val id:Int = params("id").toInt
+		transaction {
+			val publication = Schema.publications.lookup(id).getOrElse(
+				new Publication(0, 0, 0, ""))
+			val it = publication
+			contentType = "text/html"
+			it.title = params("title")
+			it.authorCount = params("authorCount").toInt
+			print("ac:"+it.authorCount+"\n")
+			Schema.publications.insertOrUpdate(it)
+			assert(it.id != 0)
+			val authors:Iterable[Author] = authorsModifiableByCurrentUser
+			for (a <-authors) {
+				val fieldName = "a_"+a.id
+				val valStr = params.getOrElse(fieldName, "off")
+				if (valStr=="on" || valStr=="ON") {
+					org.squeryl.Session.currentSession.setLogger(println(_))
+//					Schema.publicationToAuthors.insertOrUpdate(new Authorship(a, it))
+					if (it.authors.where(ar => ar.id === a.id).headOption.isEmpty)
+						it.authors.associate(a)
+				} else {
+					it.authors.dissociate(a)
+				}
+			}
+		}
+		redirect("/publicationById/"+id)
 	}
 	get("/authors") {
 		transaction {
 			val authors:Iterable[Author] = from(Schema.authors)(select(_))
 			assert(authors != null)
 			contentType = "text/html"
-			layoutTemplate("authors", "title" -> "Authors", "authors" -> authors)
+			layoutTemplate("authors", "authors" -> authors)
 		}
 	}
-	get("/schemaDrop") {
+	get("/publications") {
 		transaction {
-			Schema.drop
-			Schema.create
-			Schema.addInitialEntries
-			dump("Database schema reset", schemaToString)      
+			val publications = from(Schema.publications)(select(_))
+			contentType = "text/html"
+			layoutTemplate("", "publications" -> publications)
 		}
 	}
 	notFound {
