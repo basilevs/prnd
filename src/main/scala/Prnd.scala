@@ -93,7 +93,7 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 				val fieldName = "a_"+a.id
 				val valStr = params.getOrElse(fieldName, "off")
 				if (valStr=="on" || valStr=="ON") {
-					org.squeryl.Session.currentSession.setLogger(println(_))
+//					org.squeryl.Session.currentSession.setLogger(println(_))
 //					Schema.publicationToAuthors.insertOrUpdate(new Authorship(a, it))
 					if (it.authors.where(ar => ar.id === a.id).headOption.isEmpty)
 						it.authors.associate(a)
@@ -116,7 +116,7 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 		transaction {
 			val publications = from(Schema.publications)(select(_))
 			contentType = "text/html"
-			layoutTemplate("", "publications" -> publications)
+			layoutTemplate("publications", "publications" -> publications)
 		}
 	}
 	notFound {

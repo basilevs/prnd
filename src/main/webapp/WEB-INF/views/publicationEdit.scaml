@@ -1,0 +1,22 @@
+-@ val it: prnd.Publication
+-@ val authors: Iterable[(prnd.Author, Boolean)]
+- attributes("title") = it.title
+%form(action="save")
+	%h2 Заголовок
+	%input(type="text" size="100" name="title" value={it.title})
+	%h2 Издатель
+	%select
+		-for (p <- prnd.Publisher.all)
+			%option(value={p.id} selected={p.id == it.publisherId})
+				= p.name
+	%h2 Число авторов
+	%input(type="text" size="4" name="authorCount" value={it.authorCount})
+	%h2 Авторы
+	%ul
+		- for (pair <- authors)
+			%li 
+				%input(type="checkbox" name={"a_"+pair._1.id} checked={pair._2}) = view(pair._1)
+	%input(type="submit" value="Сохранить")
+
+
+
