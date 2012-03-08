@@ -58,10 +58,12 @@ object Publisher {
  
 object PublicationType extends Enumeration {
 	type PublicationType = Value
-	val Invited = Value(1, "Invited")
-	val Oral = Value(2, "Oral")
-	val Stand = Value(3, "Stand")
-	val Article = Value(4, "Article")
+	val Invited = Value(1, "Приглашенный доклад")
+	val Oral = Value(2, "Устный доклад")
+	val Stand = Value(3, "Стэндовый доклад")
+	val Article = Value(4, "Статья")
+	val Preprint = Value(5, "Препринт")
+	val Patent = Value(6, "Патент")
 }
 
 class Publication(var publisherId: Int = 0, var authorCount:Int = 0, var year: Int = 0, var title: String ="")  extends KeyedEntity[Int] {
