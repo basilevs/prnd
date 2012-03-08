@@ -1,0 +1,12 @@
+-@ var it:String = "Что-то не так"
+-@ val error:RuntimeException = null
+- attributes("title") = "Ошибка"
+%p
+	= it
+%p
+	%a(href="javascript:history.back()") Попробовать ещё раз
+- if (error != null)
+	%h2	Технические детали
+	= error.getClass.getName
+	= error.getLocalizedMessage()
+	

@@ -1,7 +1,7 @@
 package prnd;
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.{Schema => SSchema, KeyedEntity, ForeignKeyDeclaration}
-import org.squeryl.dsl.CompositeKey2
+import org.squeryl.dsl.{CompositeKey2}
 import org.squeryl.annotations.Column
 
 
@@ -28,7 +28,9 @@ object Schema extends SSchema {
 	def addInitialEntries {
 		val s = this
 		val pr = s.publishers.insert(new Publisher("Phys.Rev.D", 4.964F))
-		val a = s.authors.insert(new Author("Skovpen, Yu.I."))
+		s.publishers.insert(new Publisher("Phys.Rev.Lett.", 7.622F))
+		val a = s.authors.insert(new Author("Сковпень Юрий Иванович","Skovpen, Yu.I."))
+		s.authors.insert(new Author("Блинов Владимир Евгеньевич","Blinov, V.E."))
 		val pn1 = s.publications.insert(new Publication(pr.id, 100, 2011, "Measurement of partial branching fractions of inclusive charmless B meson decays to K+, K0, and pi+"))
 		s.associate(a, pn1)
 		val pn2 = s.publications.insert(new Publication(pr.id, 100, 2011, "Measurements of branching fractions, polarizations, and direct CP-violation asymmetries in B+ -> rho0 K*+ and B+ -> f0(980)K*+ decays"))
@@ -65,6 +67,10 @@ object PublicationType extends Enumeration {
 class Publication(var publisherId: Int = 0, var authorCount:Int = 0, var year: Int = 0, var title: String ="")  extends KeyedEntity[Int] {
 	val id = 0
 	lazy val authors = Schema.publicationToAuthors.left(this)
+	lazy val publisher = Schema.publisherToPublications.right(this)
+	def isValid = {
+		publisherId != 0 && year != 0 && title.length >5
+	}
 }
 
 

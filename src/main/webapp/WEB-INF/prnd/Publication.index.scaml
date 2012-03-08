@@ -1,5 +1,10 @@
 -@ val it: Publication
 %a(href={"/publicationById/"+it.id})
 	= it.title
+- val publisher = it.publisher.single
+,
+= view(publisher)
+,
+= it.year.toString
 
 

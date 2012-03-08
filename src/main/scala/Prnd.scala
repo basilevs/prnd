@@ -18,6 +18,10 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 		Schema.printDdl(x=>schema.append(x+"\n"))
 		schema.toString
   	}
+	def error(message:String, reason:RuntimeException) = {
+		contentType = "text/html"
+		layoutTemplate("error", "it" -> message, "error" -> reason)
+	}
 	get("/") {
 		redirect("/authors")
 	}
@@ -129,37 +133,43 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 	}
 	get("/publicationById/:id/save") {
 		var id:Int = params.getOrElse("id", "0").toInt
-		transaction {
-			val newData = getPublication
-			val it = Schema.publications.lookup(id).getOrElse(newData)
-			it.title = newData.title
-			it.authorCount = newData.authorCount
-			it.publisherId = newData.publisherId
-			val w = new java.io.OutputStreamWriter(java.lang.System.out, "cp866")
-			w.write(it.title+"\n")
-			w.flush
-			Schema.publications.insertOrUpdate(it)
-			assert(it.id != 0)
-			id = it.id
-			val oldAuthors:Set[Author] = it.authors.toSet
-			for (a <-authorsModifiableByCurrentUser) {
-				val fieldName = "a_"+a.id
-				val valStr = params.getOrElse(fieldName, "off")
-				if (valStr=="on" || valStr=="ON") {
-					if (!oldAuthors.contains(a))
-						it.authors.associate(a)
-				} else {
-					it.authors.dissociate(a)
+		try {
+			transaction {
+				val newData = getPublication
+				val it = Schema.publications.lookup(id).getOrElse(newData)
+				it.title = newData.title
+				it.authorCount = newData.authorCount
+				it.publisherId = newData.publisherId
+				val w = new java.io.OutputStreamWriter(java.lang.System.out, "cp866")
+				w.write(it.title+"\n")
+				w.flush
+				Schema.publications.insertOrUpdate(it)
+				assert(it.id != 0)
+				id = it.id
+				val oldAuthors:Set[Author] = it.authors.toSet
+				for (a <-authorsModifiableByCurrentUser) {
+					val fieldName = "a_"+a.id
+					val valStr = params.getOrElse(fieldName, "off")
+					if (valStr=="on" || valStr=="ON") {
+						if (!oldAuthors.contains(a))
+							it.authors.associate(a)
+					} else {
+						it.authors.dissociate(a)
+					}
 				}
 			}
+			redirect("/publicationById/"+id)
+		} catch {
+			case e: NumberFormatException => error("Неправильно введены числа. Проверьте год издания и число авторов.", e)
 		}
-		redirect("/publicationById/"+id)
 	}
 	def getPublication: Publication = {
+		val yearStr = params.getOrElse("year", "")
+		val year = if (yearStr=="") 0 else yearStr.toInt
 		val rv = new Publication(
 			params.getOrElse("publisherId", "0").toInt,
 			params.getOrElse("authorCount", "100").toInt,
-			params.getOrElse("year", "2012").toInt,
+			year,
 			params.getOrElse("title", "")
 		)
 		rv
@@ -173,6 +183,7 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 		for (p <- Schema.publications
 			if similarTitle(p.title)
 			if (it.publisherId == 0 || it.publisherId == p.publisherId)
+			if (it.year == 0 || it.year == p.year)
 		) yield p
 	}
 	notFound {

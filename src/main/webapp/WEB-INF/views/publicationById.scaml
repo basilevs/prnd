@@ -5,6 +5,11 @@
 %p
 	%a(href={"/publicationById/"+it.id+"/edit"}) Редактировать
 %p
+	Издание:
+	= view(it.publisher.single)
+	Год:
+	= it.year.toString
+%p
 	Полное число авторов:
 	= it.authorCount
 %h2

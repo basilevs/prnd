@@ -8,9 +8,12 @@
 	%select(name="publisherId")
 		-for (p <- prnd.Publisher.all)
 			%option(value={p.id} selected={p.id == it.publisherId})
-				= p.name
+				= p.name		
+	%h2 Год издания
+	%input(type="text" size="4" name="year" value={if (it.year == 0) "" else ""+it.year})
 	%h2 Число авторов
 	%input(type="text" size="4" name="authorCount" value={it.authorCount})
+	
 	%h2 Авторы
 	%ul
 		- for (pair <- authors)
