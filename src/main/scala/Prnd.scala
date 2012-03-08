@@ -4,6 +4,7 @@ import org.scalatra.UrlGenerator.url
 import java.net.URL
 import org.scalatra.scalate.ScalateSupport
 import org.squeryl.PrimitiveTypeMode._
+import org.squeryl.Session
 
 class Servlet extends ScalatraServlet with ScalateSupport {
 	// Instantiate database connection through singleton construction
@@ -172,6 +173,7 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 			year,
 			params.getOrElse("title", "")
 		)
+
 		rv
 	}
 	def similarPublications(it:Publication) = {
@@ -180,11 +182,18 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 		def similarTitle(title:String) = {
 			fields.size == 0 || !fields.exists(title.indexOf(_) == -1)
 		}
-		for (p <- Schema.publications
-			if similarTitle(p.title)
-			if (it.publisherId == 0 || it.publisherId == p.publisherId)
-			if (it.year == 0 || it.year == p.year)
-		) yield p
+		Session.currentSession.setLogger(println(_))
+		println("Similar publications")
+		val publisher:Int = it.publisherId
+		val year:Int = it.year
+		val loaded:Iterable[Publication] = from(Schema.publications)(
+			p => where(
+					( publisher === 0 or p.id === publisher ) and
+					(year === 0 or p.year === year )
+				)
+			select(p)
+		)
+		for (p <- loaded if similarTitle(p.title) ) yield p
 	}
 	notFound {
 		// Try to render a ScalateTemplate if no route matched
