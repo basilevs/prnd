@@ -1,0 +1,21 @@
+-@ val it: prnd.Author
+-@ val publications: Iterable[prnd.Publication]
+-@ val canChangeInspire:Boolean = false
+- attributes("title") = it.name
+%form(action="save")
+	%h2 Имя
+	%input(type="text" size="100" name="name" value={it.name})
+	%h2 Публикации
+	%ul
+		- for (i <- publications)
+			%li 
+				%input(type="checkbox" name={"p_"+i.id} checked=true) = view(i)
+	%input(type="submit" value="Сохранить")
+	%h2
+		Имя в
+		%a(href="http://inspirehep.net/") Inspire
+	%p
+		Редактирование имени в Inspire используется для автоматического импорта статей автора из системы Inspire.
+		Чтобы изменить это поле, обратитесь к ответственному за импорт.
+	%input(type="text" size="50" name="inspireName" value={it.inspireName} disabled={!canChangeInspire} )
+

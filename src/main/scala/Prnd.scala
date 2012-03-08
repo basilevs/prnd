@@ -18,6 +18,9 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 		Schema.printDdl(x=>schema.append(x+"\n"))
 		schema.toString
   	}
+	get("/") {
+		redirect("/authors")
+	}
 	get("/schema") {
 		transaction {
 			dump("Database schema", schemaToString)
@@ -38,7 +41,15 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 			dump("Database schema reset", schemaToString)      
 		}
 	}
-	get("/authorById/:id") {
+	get("/authors") {
+		transaction {
+			val authors:Iterable[Author] = Schema.authors
+			assert(authors != null)
+			contentType = "text/html"
+			layoutTemplate("authors", "authors" -> authors)
+		}
+	}
+	get("/authors/:id") {
 		val id:Int = params("id").toInt
 		transaction {
 			val author = Schema.authors.lookup(id)
@@ -47,6 +58,46 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 				layoutTemplate("authorById", "it" -> a, "publications" -> Schema.publicationToAuthors.right(a))
 			} getOrElse
 			resourceNotFound()
+		}
+	}
+	def canChangeInspireName = false
+	def getAuthor:Author = {
+		new Author(
+			params.getOrElse("name", ""),
+			params.getOrElse("inspireName", "")
+		)
+	}
+	get("/authors/:id/edit") {
+		val id:Int = params.getOrElse("id", "0").toInt
+		transaction {
+			val author = if (id == 0) Some(getAuthor) else Schema.authors.lookup(id)
+			author.map { a =>
+				contentType = "text/html"
+				println(a.name)
+				layoutTemplate("authorEdit", "it" -> a, "publications" -> Schema.publicationToAuthors.right(a), "canChangeInspire" -> canChangeInspireName)
+			} getOrElse
+			resourceNotFound()
+		}
+	}
+	get("/authors/:id/save") {
+		var id:Int = params("id").toInt
+		transaction {
+			val newData = getAuthor
+			val it = Schema.authors.lookup(id).getOrElse(newData)
+			it.name = newData.name
+			if (canChangeInspireName)
+				it.inspireName = newData.inspireName
+			Schema.authors.insertOrUpdate(it)
+			assert(it.id != 0)
+			id = it.id
+		}
+		redirect("/authors/"+id)
+	}
+	get("/publications") {
+		transaction {
+			contentType = "text/html"
+			val it = getPublication
+			layoutTemplate("publications", "it"->it, "publications" -> similarPublications(it))
 		}
 	}
 	get("/publicationById/:id") {
@@ -79,15 +130,14 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 	get("/publicationById/:id/save") {
 		var id:Int = params.getOrElse("id", "0").toInt
 		transaction {
-			val publication = Schema.publications.lookup(id).getOrElse(getPublication)
-			val it = publication
-			contentType = "text/html"
-			it.title = params("title")
+			val newData = getPublication
+			val it = Schema.publications.lookup(id).getOrElse(newData)
+			it.title = newData.title
+			it.authorCount = newData.authorCount
+			it.publisherId = newData.publisherId
 			val w = new java.io.OutputStreamWriter(java.lang.System.out, "cp866")
 			w.write(it.title+"\n")
 			w.flush
-			it.authorCount = params("authorCount").toInt
-//			print("ac:"+it.authorCount+"\n")
 			Schema.publications.insertOrUpdate(it)
 			assert(it.id != 0)
 			id = it.id
@@ -104,14 +154,6 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 			}
 		}
 		redirect("/publicationById/"+id)
-	}
-	get("/authors") {
-		transaction {
-			val authors:Iterable[Author] = from(Schema.authors)(select(_))
-			assert(authors != null)
-			contentType = "text/html"
-			layoutTemplate("authors", "authors" -> authors)
-		}
 	}
 	def getPublication: Publication = {
 		val rv = new Publication(
@@ -132,13 +174,6 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 			if similarTitle(p.title)
 			if (it.publisherId == 0 || it.publisherId == p.publisherId)
 		) yield p
-	}
-	get("/publications") {
-		transaction {
-			contentType = "text/html"
-			val it = getPublication
-			layoutTemplate("publications", "it"->it, "publications" -> similarPublications(it))
-		}
 	}
 	notFound {
 		// Try to render a ScalateTemplate if no route matched

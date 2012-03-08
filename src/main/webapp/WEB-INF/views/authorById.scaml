@@ -1,11 +1,16 @@
 -@ val it: prnd.Author
 -@ val publications: Iterable[prnd.Publication]
 - attributes("title") = it.name
+%p
+	%a(href={"/authors/"+it.id+"/edit"}) Изменить
 %h2
 	Публикации
--for (p <- publications)
-	%li
-		-view(p)
-
-
+%ul
+	-for (p <- publications)
+		%li
+			= view(p)
+%h2
+	Имя в
+	%a(href="http://inspirehep.net/") Inspire
+= it.inspireName
 

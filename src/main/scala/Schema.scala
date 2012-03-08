@@ -36,7 +36,7 @@ object Schema extends SSchema {
 	}
 }
 
-class Author(val name:String) extends KeyedEntity[Int] {
+class Author(var name:String, var inspireName:String = "") extends KeyedEntity[Int] {
 	val id = 0
 }
 
