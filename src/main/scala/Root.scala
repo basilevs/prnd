@@ -9,7 +9,7 @@ class Root extends Servlet {
 		schema.toString
   	}
 	get("/") {
-		redirect("/authors")
+		redirect("authors")
 	}
 	get("/schema") {
 		transaction {

@@ -14,9 +14,8 @@ class Authors extends Servlet {
 		}
 	}
 	get("/:id") {
-		val id:Int = params("id").toInt
 		transaction {
-			val author = Schema.authors.lookup(id)
+			val author = Schema.authors.lookup(getId)
 			author.map { a =>
 				contentType = "text/html"
 				layoutTemplate("authorById", "it" -> a, "publications" -> Schema.publicationToAuthors.right(a))
@@ -32,7 +31,7 @@ class Authors extends Servlet {
 		)
 	}
 	get("/:id/edit") {
-		val id:Int = params.getOrElse("id", "0").toInt
+		val id = getId
 		transaction {
 			val author = if (id == 0) Some(getAuthor) else Schema.authors.lookup(id)
 			author.map { a =>
@@ -43,7 +42,7 @@ class Authors extends Servlet {
 		}
 	}
 	get("/:id/saveName") {
-		var id:Int = params("id").toInt
+		var id:Int = getId
 		transaction {
 			val name = params("name")
 			val it = Schema.authors.lookup(id).getOrElse {new Author(name)}
@@ -52,50 +51,46 @@ class Authors extends Servlet {
 			assert(it.id != 0)
 			id = it.id
 		}
-		redirect("/authors/"+id+"/edit")
+		redirect("edit")
 	}
 	get("/:id/saveInspire") {
-		var id:Int = params("id").toInt
+		val id:Int = getId
 		transaction {
 			Schema.authors.lookup(id).map { author =>
-				author.inspireName = params("name")
-				Schema.authors.update(author)
-				redirect("/authors/"+id+"/edit")
+				if (canChangeInspireName) {
+					author.inspireName = params("inspireName")
+					Schema.authors.update(author)
+				}
+				redirect("edit#inspire")
 			} getOrElse	resourceNotFound()
 		}
 	}
 	get("/:id/addSubordinate") {
-		var id:Int = params("id").toInt
+		var id:Int = getId
 		try {
 			transaction {
 				Schema.authors.lookup(id).map { author =>
 					author.subordinates.associate(
-						new Subordinate(params("name"), params("year").toInt)
+						new Subordinate(params("name"), SubordinateStatus(params("status").toInt), params("year").toInt, params("coLeadCount").toInt)
 					)
-					redirect("/authors/"+id+"/edit")
+				redirect("edit#subordinates")
 				} getOrElse	resourceNotFound()
 			}
 		} catch {
-			case e: NumberFormatException => error("Неправильно введен год.", e)
+			case e: NumberFormatException => error("Неправильно введен год или число соруководителей.", e)
 		}
 	}
 	get("/:id/deleteSubordinates") {
-		var id:Int = params("id").toInt
+		val id:Int = getId
 		transaction {
 			Schema.authors.lookup(id).map { author =>
-				for (s <- author.subordinates) {
-					val fieldName = "s_"+s.id
-					val valStr = params.getOrElse(fieldName, "off")
-					if (valStr=="on" || valStr=="ON") {
-						Schema.subordinates.delete(s.id)
-					}
-				}
-				redirect("/authors/"+id+"/edit")
+				deleteRequestEntries[Int, Subordinate]("s_", Schema.subordinates, author.subordinates)
+				redirect("edit#subordinates")
 			} getOrElse resourceNotFound()
 		}
 	}
 	get("/:id/deletePublications") {
-		var id:Int = params("id").toInt
+		val id:Int = getId
 		transaction {
 			Schema.authors.lookup(id).map { author =>
 				for (p <- author.publications) {
@@ -105,17 +100,32 @@ class Authors extends Servlet {
 						author.publications.dissociate(p)
 					}
 				}
-				redirect("/authors/"+id+"/edit")
+				redirect("edit#publications")
 			} getOrElse resourceNotFound()
 		}
 	}
-	notFound {
-		// Try to render a ScalateTemplate if no route matched
-		findTemplate(requestPath) map { path =>
-			contentType = "text/html"
-			layoutTemplate(path)
-		} orElse
-		serveStaticResource() getOrElse 
-		resourceNotFound() 
+	get("/:id/addExtra") {
+		val id:Int = getId
+		try {
+			transaction {
+				Schema.authors.lookup(id).map { author =>
+					author.extras.associate(
+						new Extra(params("description"), params("year").toInt, params("cost").toFloat)
+					)
+					redirect("edit#extra")
+				} getOrElse	resourceNotFound()
+			}
+		} catch {
+			case e: NumberFormatException => error("Неправильно введен год или показатель.", e)
+		}
+	}
+	get("/:id/deleteExtra") {
+		val id:Int = getId
+		transaction {
+			Schema.authors.lookup(id).map { author =>
+				deleteRequestEntries[Int, Extra]("e_", Schema.extra, author.extras)
+				redirect("edit#extra")
+			} getOrElse resourceNotFound()
+		}
 	}
 }

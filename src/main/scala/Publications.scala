@@ -1,10 +1,11 @@
 package prnd;
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.Session
+import java.util.Calendar
 
 class Publications extends Servlet {
 	def getPublication: Publication = {
-		val yearStr = params.getOrElse("year", "")
+		val yearStr = params.getOrElse("year",  (Calendar.getInstance.get(Calendar.YEAR)-1).toString)
 		val year = if (yearStr=="") 0 else yearStr.toInt
 		val rv = new Publication(
 			params.getOrElse("publisherId", "0").toInt,
@@ -67,7 +68,7 @@ class Publications extends Servlet {
 			resourceNotFound()
 		}
 	}
-	get(":id/save") {
+	get("/:id/save") {
 		var id:Int = params.getOrElse("id", "0").toInt
 		try {
 			transaction {
@@ -91,7 +92,7 @@ class Publications extends Servlet {
 					}
 				}
 			}
-			redirect("/publicationById/"+id)
+			redirect("../"+id)
 		} catch {
 			case e: NumberFormatException => error("Неправильно введены числа. Проверьте год издания и число авторов.", e)
 		}

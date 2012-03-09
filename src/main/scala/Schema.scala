@@ -49,7 +49,7 @@ class Author(var name:String, var inspireName:String = "") extends KeyedEntity[I
 	val id = 0
 	lazy val publications = Schema.publicationToAuthors.right(this)
 	lazy val subordinates = Schema.authorToSubordinates.left(this)
-	lazy val extra = Schema.authorToExtra.left(this)
+	lazy val extras = Schema.authorToExtra.left(this)
 }
 
 class Authorship(val author:Int, val publication:Int) extends KeyedEntity[CompositeKey2[Int,Int]] {
@@ -71,14 +71,6 @@ object Publisher {
 	}
 }
  
-object PublicationType extends Enumeration {
-	type PublicationType = Value
-	val Article = Value(1, "Статья")
-	val Invited = Value(2, "Приглашенный доклад")
-	val Oral = Value(3, "Устный доклад")
-	val Stand = Value(4, "Стэндовый доклад")
-}
-
 class Publication(var publisherId: Int = 0, var authorCount:Int = 0, var year: Int = 0, var title: String ="")  extends KeyedEntity[Int] with Cost {
 	val id = 0
 	lazy val authors = Schema.publicationToAuthors.left(this)
@@ -89,7 +81,14 @@ class Publication(var publisherId: Int = 0, var authorCount:Int = 0, var year: I
 	def cost = publisher.single.cost / (if (authorCount<10) authorCount else 10)
 }
 
-object SubordinateType extends Enumeration {
+object ReportType extends Enumeration {
+	type Type = Value
+	val Invited = Value(2, "Приглашенный доклад")
+	val Oral = Value(3, "Устный доклад")
+	val Stand = Value(4, "Стэндовый доклад")
+}
+
+object SubordinateStatus extends Enumeration {
 	type Type = Value
 	val Dissertant = Value(1, "Защитивший кандидатскую или докторскую")
 	val Diplomant = Value(2, "Защитивший диплом бакалавра специалиста или магистра")
@@ -99,12 +98,14 @@ object SubordinateType extends Enumeration {
 	
 }
 
-class Subordinate (val name:String, val year:Int) extends KeyedEntity[Int] with Cost {
+class Subordinate (val name:String, val status:SubordinateStatus.Type, val year:Int, val coLeadCount:Int) extends KeyedEntity[Int] with Cost {
+	def this() = this("", SubordinateStatus.Magistrant, 0, 0)
 	val id = 0
 	def cost = 0F
 	val authorId = 0
 }
 
-class Extra (var description:String, val authorId:Int, var year:Int, var cost:Float) extends KeyedEntity[Int] with Cost {
+class Extra (var description:String, var year:Int, var cost:Float) extends KeyedEntity[Int] with Cost {
 	val id = 0
+	val authorId = 0
 }

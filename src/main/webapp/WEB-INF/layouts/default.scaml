@@ -10,5 +10,8 @@
 		%a(href="/publications") Публикации
 		%a(href="/authors") Авторы
 		%a(href="/issue-2008.doc.htm") Положение ИЯФ о ПРНД
+		%script(type="text/x-mathjax-config")
+			MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+		%script(type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML")
 		%h1= headline
 		!= body

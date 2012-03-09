@@ -1,0 +1,10 @@
+-@ val hasEmptyYear:Boolean = false
+-@ val defaultYear:Int = 0
+%select(name="year")
+	- if (hasEmptyYear)
+		%option(value="") Любой
+	- import java.util.Calendar
+	- val currentYear:Int = Calendar.getInstance.get(Calendar.YEAR)
+	-for (t <- Seq(currentYear-1, currentYear-2))
+		%option(value={t.toString} selected={defaultYear == t})
+			= t.toString
