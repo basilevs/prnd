@@ -10,12 +10,15 @@
 		- for (i <- publications)
 			%li 
 				%input(type="checkbox" name={"p_"+i.id} checked=true) = view(i)
+	%p
+		Если публикаций не хватает,
+		%a(href="/publications") добавьте автора в существующую, или создайте новую.
 	%input(type="submit" value="Сохранить")
 	%h2
 		Имя в
 		%a(href="http://inspirehep.net/") Inspire
 	%p
-		Редактирование имени в Inspire используется для автоматического импорта статей автора из системы Inspire.
+		Используется для автоматического импорта статей автора из системы Inspire.
 		Чтобы изменить это поле, обратитесь к ответственному за импорт.
 	%input(type="text" size="50" name="inspireName" value={it.inspireName} disabled={!canChangeInspire} )
 
