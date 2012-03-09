@@ -3,14 +3,31 @@
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 	<servlet>
-		<servlet-name>Prnd</servlet-name>
+		<servlet-name>Root</servlet-name>
 		<servlet-class>
-			prnd.Servlet
+			prnd.Root
+		</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>Authors</servlet-name>
+		<servlet-class>
+			prnd.Authors
+		</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>Publications</servlet-name>
+		<servlet-class>
+			prnd.Publications
 		</servlet-class>
 	</servlet>
 
 	<servlet-mapping>
-		<servlet-name>Prnd</servlet-name>
-		<url-pattern>/*</url-pattern>
+		<servlet-name>Publications</servlet-name> <url-pattern>/publications/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Authors</servlet-name> <url-pattern>/authors/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Root</servlet-name> <url-pattern>/*</url-pattern>
 	</servlet-mapping>
 </web-app>

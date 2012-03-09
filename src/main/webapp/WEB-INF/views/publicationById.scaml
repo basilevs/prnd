@@ -3,7 +3,7 @@
 -@ val editable: Boolean = false
 - attributes("title") = it.title
 %p
-	%a(href={"/publicationById/"+it.id+"/edit"}) Редактировать
+	%a(href={it.id+"/edit"}) Редактировать
 %p
 	Издание:
 	= view(it.publisher.single)

@@ -2,7 +2,7 @@
 -@ val publications: Iterable[prnd.Publication]
 - attributes("title") = it.name
 %p
-	%a(href={"/authors/"+it.id+"/edit"}) Изменить
+	%a(href={it.id+"/edit"}) Изменить
 %h2
 	Публикации
 %ul

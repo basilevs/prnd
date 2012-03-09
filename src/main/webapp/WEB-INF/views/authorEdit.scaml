@@ -1,24 +1,64 @@
 -@ val it: prnd.Author
--@ val publications: Iterable[prnd.Publication]
 -@ val canChangeInspire:Boolean = false
 - attributes("title") = it.name
-%form(action="save")
-	%h2 Имя
-	%input(type="text" size="100" name="name" value={it.name})
-	%h2 Публикации
-	%ul
-		- for (i <- publications)
-			%li 
-				%input(type="checkbox" name={"p_"+i.id} checked=true) = view(i)
-	%p
-		Если публикаций не хватает,
-		%a(href="/publications") добавьте автора в существующую, или создайте новую.
+%h2 Имя
+%form(action="saveName")
+	%input(type="text" size="50" name="name" value={it.name})
 	%input(type="submit" value="Сохранить")
-	%h2
-		Имя в
-		%a(href="http://inspirehep.net/") Inspire
+
+%h2 Руководство
+%p
+	Защитивших квалификационную работу следует добавлять только при условии приема их в аспирантуру, на работу в наччную организацию или ВУЗ.
+-val s = it.subordinates.toSet
+-if (s.size > 0)
+	%form(action="deleteSubordinates")
+		%ul
+			- for (i <- it.subordinates)
+				%li 
+					%input(type="checkbox" name={"s_"+i.id}) = view(i)
+		%input(type="submit" value="Удалить")
+	%p Кнопка "Удалить" необратимо удаляет все отмеченные записи.
+%form(action="addSubordinate")
+	Тип:
+	%select(name="type")
+		-for (t <- prnd.SubordinateType.values)
+			%option(value={t.id})
+				= t.toString
+	%br
+	Имя/название:
+	%input(type="text" size="100" name="name")
+	%br
+	Год:
+	%input(type="text" size="4" name="year")
+	%br
+	%input(type="submit" value="Добавить")
+%p ПРНД рассчитывается по двум последним годам. Каждый год руководства регистрируйте отдельно.
+
+%h2 Публикации
+-val p = it.publications.toSeq
+-if (p.size > 0)
+	%form(action="deletePublications")
+		%ul
+			- for (i <- p)
+				%li 
+					%input(type="checkbox" name={"p_"+i.id}) = view(i)
+		%input(type="submit" value="Удалить")
+	%p
+		Кнопка "Удалить" удаляет автора из списка авторов отмеченных публикаций. Сами публикации
+		%a(href="/publications") остаются.
+%p
+	Добавить 
+	%a(href="/publications") публикации
+	можно отредактировав списки их авторов.
+
+%h2
+	Имя в
+	%a(href="http://inspirehep.net/") Inspire
+%form(action="saveInspire")
 	%p
 		Используется для автоматического импорта статей автора из системы Inspire.
 		Чтобы изменить это поле, обратитесь к ответственному за импорт.
-	%input(type="text" size="50" name="inspireName" value={it.inspireName} disabled={!canChangeInspire} )
+	%p
+		%input(type="text" size="50" name="inspireName" value={it.inspireName} disabled={!canChangeInspire} )
+	%input(type="submit" value="Сохранить")
 
