@@ -95,8 +95,8 @@
 
 %a(name="inspire")
 %h2
-	Имя в
 	%a(href="http://inspirehep.net/") Inspire
+%h3 Имя
 %form(action="saveInspire")
 	%p
 		Используется для автоматического импорта статей автора из системы Inspire.
@@ -104,4 +104,10 @@
 	%p
 		%input(type="text" size="50" name="inspireName" value={it.inspireName} disabled={!canChangeInspire} )
 	%input(type="submit" value="Сохранить")
+%h3 Импорт
+Работает долго, дает нагрузку на сервер, больше раза не кликать.
+%form(action="inspireImport")
+	= render("yearSelect.scaml")
+	%input(type="submit" value="Импорт")
+
 

@@ -65,6 +65,16 @@ class Authors extends Servlet {
 			} getOrElse	resourceNotFound()
 		}
 	}
+	get("/:id/inspireImport") {
+		val id:Int = getId
+		transaction {
+			Schema.authors.lookup(id).map { author =>
+				new Inspire(author, params("year").toInt).run
+				redirect("edit#publications")
+			} getOrElse	resourceNotFound()
+		}
+	}
+	
 	get("/:id/addSubordinate") {
 		var id:Int = getId
 		try {
