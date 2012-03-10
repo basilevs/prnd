@@ -7,13 +7,15 @@ class Publications extends Servlet {
 	def getPublication: Publication = {
 		val yearStr = params.getOrElse("year",  (Calendar.getInstance.get(Calendar.YEAR)-1).toString)
 		val year = if (yearStr=="") 0 else yearStr.toInt
+		val publisherId = params.getOrElse("publisherId", "0").toInt
+		val defaultPubType = Schema.publishers.lookup(publisherId).map(_.allowedPublications.head).getOrElse(PublicationType.Article)
 		val rv = new Publication(
-			params.getOrElse("publisherId", "0").toInt,
+			publisherId,
 			params.getOrElse("authorCount", "100").toInt,
 			year,
-			params.getOrElse("title", "")
+			params.getOrElse("title", ""),
+			PublicationType(params.getOrElse("pubType", defaultPubType.id.toString).toInt)
 		)
-
 		rv
 	}
 	def similarPublications(it:Publication) = {
@@ -77,22 +79,27 @@ class Publications extends Servlet {
 				it.title = newData.title
 				it.authorCount = newData.authorCount
 				it.publisherId = newData.publisherId
-				Schema.publications.insertOrUpdate(it)
-				assert(it.id != 0)
-				id = it.id
-				val oldAuthors:Set[Author] = it.authors.toSet
-				for (a <-authorsModifiableByCurrentUser) {
-					val fieldName = "a_"+a.id
-					val valStr = params.getOrElse(fieldName, "off")
-					if (valStr=="on" || valStr=="ON") {
-						if (!oldAuthors.contains(a))
-							it.authors.associate(a)
-					} else {
-						it.authors.dissociate(a)
+				it.pubType = newData.pubType
+				if (!it.isValid) {
+					error("Проверьте, что тип публикации соответствует изданию, год, число авторов и заголовок введены верно.")
+				} else {
+					Schema.publications.insertOrUpdate(it)
+					assert(it.id != 0)
+					id = it.id
+					val oldAuthors:Set[Author] = it.authors.toSet
+					for (a <-authorsModifiableByCurrentUser) {
+						val fieldName = "a_"+a.id
+						val valStr = params.getOrElse(fieldName, "off")
+						if (valStr=="on" || valStr=="ON") {
+							if (!oldAuthors.contains(a))
+								it.authors.associate(a)
+						} else {
+							it.authors.dissociate(a)
+						}
 					}
+					redirect("../"+id)
 				}
 			}
-			redirect("../"+id)
 		} catch {
 			case e: NumberFormatException => error("Неправильно введены числа. Проверьте год издания и число авторов.", e)
 		}

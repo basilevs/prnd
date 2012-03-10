@@ -20,7 +20,7 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 		consoleWriter.write(data+"\n")
 		consoleWriter.flush
 	}
-	def error(message:String, reason:RuntimeException) = {
+	def error(message:String, reason:RuntimeException = null) = {
 		contentType = "text/html"
 		layoutTemplate("error", "it" -> message, "error" -> reason)
 	}

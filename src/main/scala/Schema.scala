@@ -70,8 +70,16 @@ trait Cost {
 	def cost: Float
 }
 
-class Publisher(val name: String, val cost:Float) extends KeyedEntity[Int] with Cost {
+class Publisher(val name: String, val cost:Float, val isConference:Boolean = false, val international:Boolean = true) extends KeyedEntity[Int] with Cost {
 	val id = 0
+	def allowedPublications:Set[PublicationType.Type] = {
+		import PublicationType._
+		if (isConference) {
+			Set(Invited, Oral, Stand)
+		} else {
+			Set(Article)
+		}
+	}
 }
 
 object Publisher {
@@ -80,21 +88,38 @@ object Publisher {
 	}
 }
  
-class Publication(var publisherId: Int = 0, var authorCount:Int = 0, var year: Int = 0, var title: String ="")  extends KeyedEntity[Int] with Cost {
+object PublicationType extends Enumeration {
+	type Type = Value
+	val Article = Value(1, "Статья")
+	val Invited = Value(2, "Приглашенный доклад")
+	val Oral = Value(3, "Устный доклад")
+	val Stand = Value(4, "Стэндовый доклад")
+}
+
+class Publication(
+		var publisherId: Int = 0,
+		var authorCount:Int = 0,
+		var year: Int = 0,
+		var title: String ="",
+		var pubType:PublicationType.Type = PublicationType.Article
+	)  extends KeyedEntity[Int] with Cost {
+	def this() = this(0)
 	val id = 0
 	lazy val authors = Schema.publicationToAuthors.left(this)
 	lazy val publisher = Schema.publisherToPublications.right(this)
 	def isValid = {
-		publisherId != 0 && year != 0 && title.length >5
+		publisherId != 0 && year != 0 && title.length >5 && authorCount > 0 && publisher.single.allowedPublications.contains(pubType)
 	}
-	def cost = publisher.single.cost / (if (authorCount<10) authorCount else 10)
-}
-
-object ReportType extends Enumeration {
-	type Type = Value
-	val Invited = Value(2, "Приглашенный доклад")
-	val Oral = Value(3, "Устный доклад")
-	val Stand = Value(4, "Стэндовый доклад")
+	def cost:Float = {
+		import PublicationType._	
+		val p = publisher.single
+		pubType match {
+			case Article => p.cost / (if (authorCount<10) authorCount else 10)
+			case Invited => if (p.international) 45 else 30
+			case Oral => if (p.international) 15 else 10
+			case Stand => if (p.international) 5 else 3	
+		}
+	}
 }
 
 object SubordinateStatus extends Enumeration {

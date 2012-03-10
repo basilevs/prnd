@@ -4,6 +4,11 @@
 %form(action="save")
 	%h2 Заголовок
 	%input(type="text" size="100" name="title" value={it.title})
+	%h2 Тип
+	%select(name="pubType")
+		-for (p <- prnd.PublicationType.values)
+			%option(value={p.id} selected={p == it.pubType})
+				= p.toString
 	%h2 Издатель
 	%select(name="publisherId")
 		-for (p <- prnd.Publisher.all)
