@@ -34,13 +34,22 @@ object Schema extends SSchema {
 	
 	//To be executed inside transaction
 	def addInitialEntries {
-		val pr = publishers.insert(new Publisher("Phys.Rev.D", 4.964F))
-		publishers.insert(new Publisher("Phys.Rev.Lett.", 7.622F))
+		def pr(name:String, cost:Float) = {
+			publishers.insert(new Publisher(name, cost))
+		}
+		val phRD = pr("Phys.Rev.D", 4.964F)
+		pr("Phys.Rev.Lett.", 7.622F)
+		pr("Nucl.Phys.Proc.Suppl", 0)
+		pr("Phys.Lett.B", 5.255F)
+		pr("Nucl.Instrum.Meth.A", 1.142F)
+		pr("arXiv", 6F)
+		pr("Chinese Physics C", 1.343F)
+		pr("INP", 6F)
 		val a = authors.insert(new Author("Сковпень Юрий Иванович","Skovpen, Yu.I."))
 		authors.insert(new Author("Блинов Владимир Евгеньевич","Blinov, V.E."))
-		val pn1 = publications.insert(new Publication(pr.id, 100, 2011, "Measurement of partial branching fractions of inclusive charmless B meson decays to K+, K0, and pi+"))
+		val pn1 = publications.insert(new Publication(phRD.id, 100, 2011, "Measurement of partial branching fractions of inclusive charmless B meson decays to K+, K0, and pi+"))
 		pn1.authors.associate(a)
-		val pn2 = publications.insert(new Publication(pr.id, 100, 2011, "Measurements of branching fractions, polarizations, and direct CP-violation asymmetries in B+ -> rho0 K*+ and B+ -> f0(980)K*+ decays"))
+		val pn2 = publications.insert(new Publication(phRD.id, 100, 2011, "Measurements of branching fractions, polarizations, and direct CP-violation asymmetries in B+ -> rho0 K*+ and B+ -> f0(980)K*+ decays"))
 		pn2.authors.associate(a)
 	}
 }
