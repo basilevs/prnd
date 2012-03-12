@@ -97,9 +97,9 @@ class Publications extends Servlet {
 							it.authors.dissociate(a)
 						}
 					}
-					redirect("../"+id)
 				}
 			}
+			redirect("../"+id) //Should be outside transaction!!!
 		} catch {
 			case e: NumberFormatException => error("Неправильно введены числа. Проверьте год издания и число авторов.", e)
 		}

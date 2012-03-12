@@ -61,18 +61,18 @@ class Authors extends Servlet {
 					author.inspireName = params("inspireName")
 					Schema.authors.update(author)
 				}
-				redirect("edit#inspire")
 			} getOrElse	resourceNotFound()
 		}
+		redirect("edit#inspire")
 	}
 	get("/:id/inspireImport") {
 		val id:Int = getId
 		transaction {
 			Schema.authors.lookup(id).map { author =>
 				new Inspire(author, params("year").toInt).run
-				redirect("edit#publications")
 			} getOrElse	resourceNotFound()
 		}
+		redirect("edit#publications")
 	}
 	
 	get("/:id/addSubordinate") {
@@ -83,9 +83,9 @@ class Authors extends Servlet {
 					author.subordinates.associate(
 						new Subordinate(params("name"), SubordinateStatus(params("status").toInt), params("year").toInt, params("coLeadCount").toInt)
 					)
-				redirect("edit#subordinates")
 				} getOrElse	resourceNotFound()
 			}
+			redirect("edit#subordinates")
 		} catch {
 			case e: NumberFormatException => error("Неправильно введен год или число соруководителей.", e)
 		}
@@ -95,9 +95,9 @@ class Authors extends Servlet {
 		transaction {
 			Schema.authors.lookup(id).map { author =>
 				deleteRequestEntries[Int, Subordinate]("s_", Schema.subordinates, author.subordinates)
-				redirect("edit#subordinates")
 			} getOrElse resourceNotFound()
 		}
+		redirect("edit#subordinates")
 	}
 	get("/:id/deletePublications") {
 		val id:Int = getId
@@ -110,9 +110,9 @@ class Authors extends Servlet {
 						author.publications.dissociate(p)
 					}
 				}
-				redirect("edit#publications")
 			} getOrElse resourceNotFound()
 		}
+		redirect("edit#publications")
 	}
 	get("/:id/addExtra") {
 		val id:Int = getId
@@ -122,9 +122,9 @@ class Authors extends Servlet {
 					author.extras.associate(
 						new Extra(params("description"), params("year").toInt, params("cost").toFloat)
 					)
-					redirect("edit#extra")
 				} getOrElse	resourceNotFound()
 			}
+			redirect("edit#extra")
 		} catch {
 			case e: NumberFormatException => error("Неправильно введен год или показатель.", e)
 		}
@@ -134,8 +134,8 @@ class Authors extends Servlet {
 		transaction {
 			Schema.authors.lookup(id).map { author =>
 				deleteRequestEntries[Int, Extra]("e_", Schema.extra, author.extras)
-				redirect("edit#extra")
 			} getOrElse resourceNotFound()
 		}
+		redirect("edit#extra")
 	}
 }
