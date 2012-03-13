@@ -5,6 +5,9 @@
 %p
 	%a(href={it.id+"/edit"}) Редактировать
 %p
+	-for(g <- it.groups)
+		= view(g)
+%p
 	Издание:
 	= view(it.publisher.single)
 	Год:

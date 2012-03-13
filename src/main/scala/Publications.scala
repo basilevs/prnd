@@ -50,7 +50,10 @@ class Publications extends Servlet {
 			val publication = Schema.publications.lookup(id)
 			publication.map { it =>
 				contentType = "text/html"
-				layoutTemplate("publicationById", "it"->it, "authors" -> Schema.publicationToAuthors.left(it))
+				layoutTemplate("publicationById",
+					"it"->it,
+					"authors" -> it.authors
+				)
 			} getOrElse	resourceNotFound()
 		}
 	}
@@ -65,7 +68,7 @@ class Publications extends Servlet {
 				contentType = "text/html"
 				val authors:Set[Author] = authorsModifiableByCurrentUser++it.authors
 				val authorFlags = authors.map( a => (a, it.authors.exists(_.id == a.id)))
-				layoutTemplate("publicationEdit", "it"->it, "authors" -> authorFlags)
+				layoutTemplate("publicationEdit", "it"->it, "authors" -> authorFlags, "allowedGroups" -> Schema.groups.toSet)
 			} getOrElse
 			resourceNotFound()
 		}

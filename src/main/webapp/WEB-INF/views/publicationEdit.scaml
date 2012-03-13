@@ -1,9 +1,17 @@
 -@ val it: prnd.Publication
 -@ val authors: Iterable[(prnd.Author, Boolean)]
+-@ val allowedGroups: Set[prnd.WorkGroup] = Set()
 - attributes("title") = it.title
 %form(action="save")
 	%h2 Заголовок
 	%input(type="text" size="100" name="title" value={it.title})
+	%h2 Группы
+	%p
+		-val setGroups = it.groups.toSet
+		-val allGroups:Seq[prnd.WorkGroup] = setGroups.toSeq ++ (allowedGroups -- setGroups)
+		-for(g <- allGroups)
+			%input(type="checkbox" name={"g_"+g.id} checked={setGroups.contains(g)} disabled={!allowedGroups.contains(g)})
+				= view(g)
 	%h2 Тип
 	%select(name="pubType")
 		-for (p <- prnd.PublicationType.values)
