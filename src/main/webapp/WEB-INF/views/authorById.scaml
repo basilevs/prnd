@@ -3,6 +3,10 @@
 - attributes("title") = it.name
 %p
 	%a(href={it.id+"/edit"}) Изменить
+%h2 Группы
+%p
+	-for(g <- it.groups)
+		= view(g)
 %h2
 	Публикации
 %ul

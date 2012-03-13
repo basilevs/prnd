@@ -8,7 +8,7 @@
 		Чтобы найти статью, введите критерии отбора и нажмите кнопку "Отобрать". Полный список публикаций доступен по ссылке вверху страницы.
 	%p
 		Чтобы добавить новую статью, введите её название, издателя, год издания и нажмите кнопку "Отобрать".
-		Если публикации удовлетворяющей критериям не найдено, активируется кнопка "Добавить".
+		Если ваша статья не найдена, нажмите "Добавить".
 		Не добавляйте публикацию, если такая уже зарегистрована!
 		Убедитесь, что ваша публикация не зарегистрована под немного отличающимся именем.
 	%p
@@ -30,7 +30,7 @@
 	= render("yearSelect.scaml", Map("hasEmptyYear" -> true, "defaultYear"->it.year))
 	%p
 		%input(type="submit" value="Отобрать")
-		%input(type="button" value="Добавить" disabled={publications.size!=0 || !it.isValid} onclick="this.form.action='publications/0/edit'; this.form.submit()")
+		%input(type="button" value="Добавить" disabled={publications.size!=0} onclick="this.form.action='publications/0/edit'; this.form.submit()")
 		
 %a(name="start")
 %h2 Найденные публикации

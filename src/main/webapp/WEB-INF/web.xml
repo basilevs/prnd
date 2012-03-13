@@ -4,23 +4,24 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 	<servlet>
 		<servlet-name>Root</servlet-name>
-		<servlet-class>
-			prnd.Root
-		</servlet-class>
+		<servlet-class>prnd.Root</servlet-class>
 	</servlet>
 	<servlet>
 		<servlet-name>Authors</servlet-name>
-		<servlet-class>
-			prnd.Authors
-		</servlet-class>
+		<servlet-class>prnd.Authors</servlet-class>
 	</servlet>
 	<servlet>
 		<servlet-name>Publications</servlet-name>
-		<servlet-class>
-			prnd.Publications
-		</servlet-class>
+		<servlet-class>prnd.Publications</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>Groups</servlet-name>
+		<servlet-class>prnd.Groups</servlet-class>
 	</servlet>
 
+	<servlet-mapping>
+		<servlet-name>Groups</servlet-name> <url-pattern>/groups/*</url-pattern>
+	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>Publications</servlet-name> <url-pattern>/publications/*</url-pattern>
 	</servlet-mapping>

@@ -32,8 +32,16 @@ object Schema extends SSchema {
 		.via((a,e) => a.id === e.authorId)
 	authorToExtra.foreignKeyDeclaration.constrainReference(onDelete cascade)
 	
+	val groups = table[WorkGroup]
+	val authorToGroup = manyToManyRelation[Author, WorkGroup, AuthorToGroup](authors, groups)
+		.via[AuthorToGroup]( (a, g, ag) => (a.id === ag.authorId, ag.groupId === g.id) )
+	val publicationToGroup = manyToManyRelation[Publication, WorkGroup, PublicationToGroup](publications, groups)
+		.via[PublicationToGroup]( (a, g, ag) => (a.id === ag.publicationId, ag.groupId === g.id) )
+	
 	//To be executed inside transaction
 	def addInitialEntries {
+		val babar = groups.insert(new WorkGroup("BaBar"))
+		val kedr  = groups.insert(new WorkGroup("KEDR"))
 		def pr(name:String, cost:Float) = {
 			publishers.insert(new Publisher(name, cost))
 		}
@@ -45,12 +53,15 @@ object Schema extends SSchema {
 		pr("arXiv", 6F)
 		pr("Chinese Physics C", 1.343F)
 		pr("INP", 6F)
-		val a = authors.insert(new Author("Сковпень Юрий Иванович","Skovpen, Yu.I."))
-		authors.insert(new Author("Блинов Владимир Евгеньевич","Blinov, V.E."))
+		val skovpen = authors.insert(new Author("Сковпень Юрий Иванович","Skovpen, Yu.I."))
+		skovpen.groups.associate(kedr)
+		skovpen.groups.associate(babar)
+		val blinov  = authors.insert(new Author("Блинов Владимир Евгеньевич","Blinov, V.E."))
+		blinov.groups.associate(kedr)
 		val pn1 = publications.insert(new Publication(phRD.id, 100, 2011, "Measurement of partial branching fractions of inclusive charmless B meson decays to K+, K0, and pi+"))
-		pn1.authors.associate(a)
+		pn1.authors.associate(skovpen)
 		val pn2 = publications.insert(new Publication(phRD.id, 100, 2011, "Measurements of branching fractions, polarizations, and direct CP-violation asymmetries in B+ -> rho0 K*+ and B+ -> f0(980)K*+ decays"))
-		pn2.authors.associate(a)
+		pn2.authors.associate(skovpen)
 	}
 }
 
@@ -59,10 +70,10 @@ class Author(var name:String, var inspireName:String = "") extends KeyedEntity[I
 	lazy val publications = Schema.publicationToAuthors.right(this)
 	lazy val subordinates = Schema.authorToSubordinates.left(this)
 	lazy val extras = Schema.authorToExtra.left(this)
+	lazy val groups = Schema.authorToGroup.left(this)
 }
 
 class Authorship(val author:Int, val publication:Int) extends KeyedEntity[CompositeKey2[Int,Int]] {
-	def this(a:Author, pn:Publication) = this(a.id, pn.id)
 	def id = compositeKey(author, publication)
 }
 
@@ -107,6 +118,7 @@ class Publication(
 	val id = 0
 	lazy val authors = Schema.publicationToAuthors.left(this)
 	lazy val publisher = Schema.publisherToPublications.right(this)
+	lazy val groups = Schema.publicationToGroup.left(this)
 	def isValid = {
 		publisherId != 0 && year != 0 && title.length >5 && authorCount > 0 && publisher.single.allowedPublications.contains(pubType)
 	}
@@ -142,4 +154,21 @@ class Subordinate (val name:String, val status:SubordinateStatus.Type, val year:
 class Extra (var description:String, var year:Int, var cost:Float) extends KeyedEntity[Int] with Cost {
 	val id = 0
 	val authorId = 0
+}
+
+//Can't name this Group due to mysql syntax
+class WorkGroup(val name:String) extends KeyedEntity[Int] {
+	val id = 0
+	lazy val authors = Schema.authorToGroup.right(this)
+	lazy val publications = Schema.publicationToGroup.right(this)
+}
+
+class AuthorToGroup(val authorId:Int, val groupId:Int) extends KeyedEntity[CompositeKey2[Int,Int]] {
+	def id = compositeKey(authorId, groupId)
+}
+
+class PublicationToGroup() extends KeyedEntity[CompositeKey2[Int,Int]] {
+	val publicationId:Int = 0
+	val groupId:Int = 0
+	def id = compositeKey(publicationId, groupId)
 }
