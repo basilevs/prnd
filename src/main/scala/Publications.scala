@@ -70,6 +70,8 @@ class Publications extends Servlet {
 			resourceNotFound()
 		}
 	}
+	class Invalid extends RuntimeException
+	
 	get("/:id/save") {
 		var id:Int = params.getOrElse("id", "0").toInt
 		try {
@@ -80,28 +82,27 @@ class Publications extends Servlet {
 				it.authorCount = newData.authorCount
 				it.publisherId = newData.publisherId
 				it.pubType = newData.pubType
-				if (!it.isValid) {
-					error("Проверьте, что тип публикации соответствует изданию, год, число авторов и заголовок введены верно.")
-				} else {
-					Schema.publications.insertOrUpdate(it)
-					assert(it.id != 0)
-					id = it.id
-					val oldAuthors:Set[Author] = it.authors.toSet
-					for (a <-authorsModifiableByCurrentUser) {
-						val fieldName = "a_"+a.id
-						val valStr = params.getOrElse(fieldName, "off")
-						if (valStr=="on" || valStr=="ON") {
-							if (!oldAuthors.contains(a))
-								it.authors.associate(a)
-						} else {
-							it.authors.dissociate(a)
-						}
+				if (!it.isValid)
+					throw new Invalid()
+				Schema.publications.insertOrUpdate(it)
+				assert(it.id != 0)
+				id = it.id
+				val oldAuthors:Set[Author] = it.authors.toSet
+				for (a <-authorsModifiableByCurrentUser) {
+					val fieldName = "a_"+a.id
+					val valStr = params.getOrElse(fieldName, "off")
+					if (valStr=="on" || valStr=="ON") {
+						if (!oldAuthors.contains(a))
+							it.authors.associate(a)
+					} else {
+						it.authors.dissociate(a)
 					}
 				}
 			}
 			redirect("../"+id) //Should be outside transaction!!!
 		} catch {
 			case e: NumberFormatException => error("Неправильно введены числа. Проверьте год издания и число авторов.", e)
+			case e: Invalid => error("Проверьте, что тип публикации соответствует изданию, год, число авторов и заголовок введены верно.")
 		}
 	}
 }
