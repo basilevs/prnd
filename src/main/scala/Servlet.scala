@@ -60,5 +60,12 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 			}
 		}
 	}
-
+	// Redirects if transaction returns None
+	// Returns transaction result otherwise
+	def transactionOrRedirect[A](target:String) (body: =>Option[A]) = {
+		val rv = transaction {
+			body
+		}.asInstanceOf[Option[A]]
+		rv.getOrElse(redirect(target))
+	}
 }

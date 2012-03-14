@@ -59,61 +59,62 @@ class Authors extends Servlet {
 	}
 	get("/:id/saveGroups") {
 		val id:Int = getId
-		transaction {
+		transactionOrRedirect("edit") {
 			Schema.authors.lookup(id).map { author =>
 				updateAssociations("g_", groupsModifiableByCurrentUser, author.groups)
-			} getOrElse	resourceNotFound()
-		}
+				None
+			} getOrElse Option(resourceNotFound())
+		} 
 	}
 	get("/:id/saveInspire") {
 		val id:Int = getId
-		transaction {
+		transactionOrRedirect("edit#inspire") {
 			Schema.authors.lookup(id).map { author =>
 				if (canChangeInspireName) {
 					author.inspireName = params("inspireName")
 					Schema.authors.update(author)
 				}
-			} getOrElse	resourceNotFound()
+				None //To redirect
+			} getOrElse	Option(resourceNotFound())
 		}
-		redirect("edit#inspire")
 	}
 	get("/:id/inspireImport") {
 		val id:Int = getId
-		transaction {
+		transactionOrRedirect("edit#publications") {
 			Schema.authors.lookup(id).map { author =>
 				new Inspire(author, params("year").toInt).run
-			} getOrElse	resourceNotFound()
+				None
+			} getOrElse	Option(resourceNotFound())
 		}
-		redirect("edit#publications")
 	}
 	
 	get("/:id/addSubordinate") {
 		var id:Int = getId
 		try {
-			transaction {
+			transactionOrRedirect("edit#subordinates") {
 				Schema.authors.lookup(id).map { author =>
 					author.subordinates.associate(
 						new Subordinate(params("name"), SubordinateStatus(params("status").toInt), params("year").toInt, params("coLeadCount").toInt)
 					)
-				} getOrElse	resourceNotFound()
+					None
+				} getOrElse	Option(resourceNotFound())
 			}
-			redirect("edit#subordinates")
 		} catch {
 			case e: NumberFormatException => error("Неправильно введен год или число соруководителей.", e)
 		}
 	}
 	get("/:id/deleteSubordinates") {
 		val id:Int = getId
-		transaction {
+		transactionOrRedirect("edit#subordinates") {
 			Schema.authors.lookup(id).map { author =>
 				deleteRequestEntries[Int, Subordinate]("s_", Schema.subordinates, author.subordinates)
-			} getOrElse resourceNotFound()
+				None
+			} getOrElse Option(resourceNotFound())
 		}
-		redirect("edit#subordinates")
 	}
 	get("/:id/deletePublications") {
 		val id:Int = getId
-		transaction {
+		transactionOrRedirect("edit#publications") {
 			Schema.authors.lookup(id).map { author =>
 				for (p <- author.publications) {
 					val fieldName = "p_"+p.id
@@ -122,32 +123,32 @@ class Authors extends Servlet {
 						author.publications.dissociate(p)
 					}
 				}
-			} getOrElse resourceNotFound()
+				None
+			} getOrElse Option(resourceNotFound())
 		}
-		redirect("edit#publications")
 	}
 	get("/:id/addExtra") {
 		val id:Int = getId
 		try {
-			transaction {
+			transactionOrRedirect("edit#extra") {
 				Schema.authors.lookup(id).map { author =>
 					author.extras.associate(
 						new Extra(params("description"), params("year").toInt, params("cost").toFloat)
 					)
-				} getOrElse	resourceNotFound()
+					None
+				} getOrElse	Option(resourceNotFound())
 			}
-			redirect("edit#extra")
 		} catch {
 			case e: NumberFormatException => error("Неправильно введен год или показатель.", e)
 		}
 	}
 	get("/:id/deleteExtra") {
 		val id:Int = getId
-		transaction {
+		transactionOrRedirect("edit#extra") {
 			Schema.authors.lookup(id).map { author =>
 				deleteRequestEntries[Int, Extra]("e_", Schema.extra, author.extras)
-			} getOrElse resourceNotFound()
+				None
+			} getOrElse Option(resourceNotFound())
 		}
-		redirect("edit#extra")
 	}
 }
