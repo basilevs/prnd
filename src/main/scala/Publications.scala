@@ -74,7 +74,6 @@ class Publications extends Servlet {
 		}
 	}
 	class Invalid extends RuntimeException
-	
 	get("/:id/save") {
 		var id:Int = params.getOrElse("id", "0").toInt
 		try {
@@ -90,17 +89,8 @@ class Publications extends Servlet {
 				Schema.publications.insertOrUpdate(it)
 				assert(it.id != 0)
 				id = it.id
-				val oldAuthors:Set[Author] = it.authors.toSet
-				for (a <-authorsModifiableByCurrentUser) {
-					val fieldName = "a_"+a.id
-					val valStr = params.getOrElse(fieldName, "off")
-					if (valStr=="on" || valStr=="ON") {
-						if (!oldAuthors.contains(a))
-							it.authors.associate(a)
-					} else {
-						it.authors.dissociate(a)
-					}
-				}
+				updateAssociations("a_", authorsModifiableByCurrentUser, it.authors)
+				updateAssociations("g_", groupsModifiableByCurrentUser, it.groups)
 			}
 			redirect("../"+id) //Should be outside transaction!!!
 		} catch {

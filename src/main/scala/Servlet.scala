@@ -3,9 +3,9 @@ import org.scalatra.ScalatraServlet
 import org.scalatra.UrlGenerator.url
 import java.net.URL
 import org.scalatra.scalate.ScalateSupport
+import org.squeryl.{KeyedEntity, Session, Table}
 import org.squeryl.PrimitiveTypeMode._
-import org.squeryl.Session
-import org.squeryl.{Table, KeyedEntity}
+import org.squeryl.dsl.{ManyToMany}
 
 class Servlet extends ScalatraServlet with ScalateSupport {
 	// Instantiate database connection through singleton construction
@@ -36,13 +36,29 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 		serveStaticResource() getOrElse 
 		resourceNotFound() 
 	}
+	def paramChecked(name:String) = {
+		val valStr = params.getOrElse(name, "off")
+		valStr=="on" || valStr=="ON"
+	}
 	def deleteRequestEntries[K, T<:KeyedEntity[K]](prefix:String, table:Table[T], allowed:Iterable[T]) {
 		for (s <- allowed) {
-			val fieldName = prefix+s.id
-			val valStr = params.getOrElse(fieldName, "off")
-			if (valStr=="on" || valStr=="ON") {
+			if (paramChecked(prefix+s.id))
 				table.delete(s.id)
+		}
+	}
+	def groupsModifiableByCurrentUser:Set[WorkGroup] = {	
+		Schema.groups.toSet
+	}
+	def updateAssociations[O<:KeyedEntity[_], A<:KeyedEntity[_]](prefix:String, allowed:Set[O], association:ManyToMany[O,A]) {
+		val old:Set[O] = association.toSet
+		for (o <- allowed) {
+			if (paramChecked(prefix+o.id)) {
+				if (!old.contains(o)) 
+					association.associate(o)
+			} else {
+				association.dissociate(o)
 			}
 		}
 	}
+
 }

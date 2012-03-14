@@ -36,7 +36,11 @@ class Authors extends Servlet {
 			val author = if (id == 0) Some(getAuthor) else Schema.authors.lookup(id)
 			author.map { a =>
 				contentType = "text/html"
-				layoutTemplate("authorEdit", "it" -> a, "canChangeInspire" -> canChangeInspireName)
+				layoutTemplate("authorEdit",
+					"it" -> a,
+					"canChangeInspire" -> canChangeInspireName,
+					"allowedGroups" -> groupsModifiableByCurrentUser
+				)
 			} getOrElse
 			resourceNotFound()
 		}
@@ -52,6 +56,14 @@ class Authors extends Servlet {
 			id = it.id
 		}
 		redirect("edit")
+	}
+	get("/:id/saveGroups") {
+		val id:Int = getId
+		transaction {
+			Schema.authors.lookup(id).map { author =>
+				updateAssociations("g_", groupsModifiableByCurrentUser, author.groups)
+			} getOrElse	resourceNotFound()
+		}
 	}
 	get("/:id/saveInspire") {
 		val id:Int = getId

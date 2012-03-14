@@ -3,18 +3,16 @@
 -@ val editable: Boolean = false
 - attributes("title") = it.title
 %p
-	%a(href={it.id+"/edit"}) Редактировать
+	= view(it.publisher.single)
+	= it.year.toString
 %p
 	-for(g <- it.groups)
 		= view(g)
 %p
-	Издание:
-	= view(it.publisher.single)
-	Год:
-	= it.year.toString
-%p
 	Полное число авторов:
 	= it.authorCount
+%p
+	%a(href={it.id+"/edit"}) Редактировать
 %h2
 	Авторы
 -for (a <- authors)

@@ -60,6 +60,7 @@ object Schema extends SSchema {
 		blinov.groups.associate(kedr)
 		val pn1 = publications.insert(new Publication(phRD.id, 100, 2011, "Measurement of partial branching fractions of inclusive charmless B meson decays to K+, K0, and pi+"))
 		pn1.authors.associate(skovpen)
+		pn1.groups.associate(babar)
 		val pn2 = publications.insert(new Publication(phRD.id, 100, 2011, "Measurements of branching fractions, polarizations, and direct CP-violation asymmetries in B+ -> rho0 K*+ and B+ -> f0(980)K*+ decays"))
 		pn2.authors.associate(skovpen)
 	}
