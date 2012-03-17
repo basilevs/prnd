@@ -15,7 +15,7 @@ class Authors extends Servlet {
 	}
 	def isAuthorEditable(a:Author) = {
 		//TODO: real author access control
-		false
+		true
 	}
 	get("/:id") {
 		transaction {
