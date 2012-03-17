@@ -47,6 +47,7 @@ class Servlet extends ScalatraServlet with ScalateSupport {
 		}
 	}
 	def groupsModifiableByCurrentUser:Set[WorkGroup] = {	
+		//TODO: real group access control
 		Schema.groups.toSet
 	}
 	def updateAssociations[O<:KeyedEntity[_], A<:KeyedEntity[_]](prefix:String, allowed:Set[O], association:ManyToMany[O,A]) {

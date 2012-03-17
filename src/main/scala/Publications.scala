@@ -4,6 +4,14 @@ import org.squeryl.Session
 import java.util.Calendar
 
 class Publications extends Servlet {
+	def authorsModifiableByCurrentUser:Set[Author] = {
+		//TODO: real author access control
+		Schema.authors.toSet
+	}
+	def isPublicationEditable(p:Publication) = {
+		//TODO: real publication access control
+		true
+	}
 	def getPublication: Publication = {
 		val yearStr = params.getOrElse("year",  (Calendar.getInstance.get(Calendar.YEAR)-1).toString)
 		val year = if (yearStr=="") 0 else yearStr.toInt
@@ -52,23 +60,21 @@ class Publications extends Servlet {
 				contentType = "text/html"
 				layoutTemplate("publicationById",
 					"it"->it,
-					"authors" -> it.authors
+					"authors" -> it.authors,
+					"editable" -> isPublicationEditable(it)
 				)
 			} getOrElse	resourceNotFound()
 		}
-	}
-	def authorsModifiableByCurrentUser:Set[Author] = {
-		Schema.authors.toSet
 	}
 	get("/:id/edit") {
 		val id:Int = params.getOrElse("id", "0").toInt
 		transaction {
 			val publication = if (id == 0) Some(getPublication) else Schema.publications.lookup(id)
-			publication.map{it =>
+			publication.filter(isPublicationEditable).map {it =>
 				contentType = "text/html"
 				val authors:Set[Author] = authorsModifiableByCurrentUser++it.authors
 				val authorFlags = authors.map( a => (a, it.authors.exists(_.id == a.id)))
-				layoutTemplate("publicationEdit", "it"->it, "authors" -> authorFlags, "allowedGroups" -> Schema.groups.toSet)
+				layoutTemplate("publicationEdit", "it"->it, "authors" -> authorFlags, "allowedGroups" -> groupsModifiableByCurrentUser)
 			} getOrElse
 			resourceNotFound()
 		}

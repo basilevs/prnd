@@ -1,8 +1,11 @@
 -@ val it: prnd.Author
--@ val publications: Iterable[prnd.Publication]
+-@ val editable:Boolean = true
+-val publications = it.publications
 - attributes("title") = it.name
-%p
-	%a(href={it.id+"/edit"}) Изменить
+
+-if (editable)
+	%p
+		%a(href={it.id+"/edit"}) Изменить
 %h2 Группы
 %p
 	-for(g <- it.groups)

@@ -13,12 +13,19 @@ class Authors extends Servlet {
 			layoutTemplate("authors", "authors" -> authors)
 		}
 	}
+	def isAuthorEditable(a:Author) = {
+		//TODO: real author access control
+		false
+	}
 	get("/:id") {
 		transaction {
 			val author = Schema.authors.lookup(getId)
-			author.map { a =>
+			author.filter(isAuthorEditable).map { a =>
 				contentType = "text/html"
-				layoutTemplate("authorById", "it" -> a, "publications" -> Schema.publicationToAuthors.right(a))
+				layoutTemplate("authorById",
+					"it" -> a,
+					"editable" -> isAuthorEditable(a)
+				)
 			} getOrElse
 			resourceNotFound()
 		}
@@ -34,7 +41,7 @@ class Authors extends Servlet {
 		val id = getId
 		transaction {
 			val author = if (id == 0) Some(getAuthor) else Schema.authors.lookup(id)
-			author.map { a =>
+			author.filter(isAuthorEditable).map { a =>
 				contentType = "text/html"
 				layoutTemplate("authorEdit",
 					"it" -> a,
@@ -45,11 +52,14 @@ class Authors extends Servlet {
 			resourceNotFound()
 		}
 	}
+	class AccessDenied extends RuntimeException
 	get("/:id/saveName") {
 		var id:Int = getId
 		transaction {
 			val name = params("name")
 			val it = Schema.authors.lookup(id).getOrElse {new Author(name)}
+			if (!isAuthorEditable(it))
+				throw new AccessDenied
 			it.name = name
 			Schema.authors.insertOrUpdate(it)
 			assert(it.id != 0)
@@ -61,6 +71,8 @@ class Authors extends Servlet {
 		val id:Int = getId
 		transactionOrRedirect("edit") {
 			Schema.authors.lookup(id).map { author =>
+				if (!isAuthorEditable(author))
+					throw new AccessDenied
 				updateAssociations("g_", groupsModifiableByCurrentUser, author.groups)
 				None
 			} getOrElse Option(resourceNotFound())
@@ -70,6 +82,8 @@ class Authors extends Servlet {
 		val id:Int = getId
 		transactionOrRedirect("edit#inspire") {
 			Schema.authors.lookup(id).map { author =>
+				if (!isAuthorEditable(author))
+					throw new AccessDenied
 				if (canChangeInspireName) {
 					author.inspireName = params("inspireName")
 					Schema.authors.update(author)
@@ -82,6 +96,8 @@ class Authors extends Servlet {
 		val id:Int = getId
 		transactionOrRedirect("edit#publications") {
 			Schema.authors.lookup(id).map { author =>
+				if (!isAuthorEditable(author))
+					throw new AccessDenied
 				new Inspire(author, params("year").toInt).run
 				None
 			} getOrElse	Option(resourceNotFound())
@@ -93,6 +109,8 @@ class Authors extends Servlet {
 		try {
 			transactionOrRedirect("edit#subordinates") {
 				Schema.authors.lookup(id).map { author =>
+					if (!isAuthorEditable(author))
+						throw new AccessDenied
 					author.subordinates.associate(
 						new Subordinate(params("name"), SubordinateStatus(params("status").toInt), params("year").toInt, params("coLeadCount").toInt)
 					)
@@ -107,6 +125,8 @@ class Authors extends Servlet {
 		val id:Int = getId
 		transactionOrRedirect("edit#subordinates") {
 			Schema.authors.lookup(id).map { author =>
+				if (!isAuthorEditable(author))
+					throw new AccessDenied
 				deleteRequestEntries[Int, Subordinate]("s_", Schema.subordinates, author.subordinates)
 				None
 			} getOrElse Option(resourceNotFound())
@@ -116,6 +136,8 @@ class Authors extends Servlet {
 		val id:Int = getId
 		transactionOrRedirect("edit#publications") {
 			Schema.authors.lookup(id).map { author =>
+				if (!isAuthorEditable(author))
+					throw new AccessDenied
 				for (p <- author.publications) {
 					val fieldName = "p_"+p.id
 					val valStr = params.getOrElse(fieldName, "off")
@@ -132,6 +154,8 @@ class Authors extends Servlet {
 		try {
 			transactionOrRedirect("edit#extra") {
 				Schema.authors.lookup(id).map { author =>
+					if (!isAuthorEditable(author))
+						throw new AccessDenied
 					author.extras.associate(
 						new Extra(params("description"), params("year").toInt, params("cost").toFloat)
 					)
@@ -146,6 +170,8 @@ class Authors extends Servlet {
 		val id:Int = getId
 		transactionOrRedirect("edit#extra") {
 			Schema.authors.lookup(id).map { author =>
+				if (!isAuthorEditable(author))
+					throw new AccessDenied
 				deleteRequestEntries[Int, Extra]("e_", Schema.extra, author.extras)
 				None
 			} getOrElse Option(resourceNotFound())

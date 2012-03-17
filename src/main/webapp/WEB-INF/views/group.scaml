@@ -1,0 +1,11 @@
+-@ val it: prnd.WorkGroup
+- attributes("title") = it.name
+%h2 Авторы
+%ul 
+	-for (a <- it.authors)
+		= view(a)
+
+%h2 Публикации
+%ul 
+	-for(p <- it.publications)
+		= view(p)

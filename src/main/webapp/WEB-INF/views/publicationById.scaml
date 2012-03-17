@@ -11,8 +11,9 @@
 %p
 	Полное число авторов:
 	= it.authorCount
-%p
-	%a(href={it.id+"/edit"}) Редактировать
+-if (editable)
+	%p
+		%a(href={it.id+"/edit"}) Редактировать
 %h2
 	Авторы
 -for (a <- authors)
