@@ -16,10 +16,13 @@ class Inspire(val author:Author, year:Int) {
 			select(p)
 		).headOption
 	}
+	class UnknownJournal(name:String, volume:String = "")
+	extends RuntimeException("Незарегистрированное издание: "+name+", том: "+volume) {
+	}
 	def guessJournal(name:String, volume:String):Publisher = {
 		val j = tryJournal(name+volume(0)).orElse(tryJournal(name))
 		if (j.isEmpty)
-			throw new RuntimeException("No journal "+name+volume)
+			throw new UnknownJournal(name, volume)
 		j.get
 	}
 	//Use inside transaction
@@ -41,6 +44,9 @@ class Inspire(val author:Author, year:Int) {
 		val value = pair(1).trim().replaceAll("^\"+", "").replaceAll("\n +", "")
 		(name, value)
 	}
+	def parseHTML(data:String) = {
+		scala.xml.Text(data).text
+	}
 	def bibTexNodeToPublication(elem:Node) = {
 		val sections = elem.text.split("\",\n +")
 		val fields = (sections filter (_.length > 4) map fieldToPair).toMap
@@ -48,9 +54,11 @@ class Inspire(val author:Author, year:Int) {
 		println(fields("journal")+fields("volume"))
 		val publisher = guessJournal(fields("journal"), fields("volume"))
 		val year = fields("year").toInt
-		val title = fields("title").replaceAll("^\\{|\\}$", "")
+		val title = parseHTML(fields("title").replaceAll("^\\{|\\}$", "")).replaceAll("&gt;", ">");
 		println(title)
-		new Publication(publisher.id, 100, year, title)
+		val p = new Publication(publisher.id, 100, year, title).findOrInsert
+		p.authors.associate(author)
+		p
 	}
 	def processBibtex(data:NodeSeq): Iterable[Publication] = {
 		val nodes:NodeSeq = (data \\ "pre")

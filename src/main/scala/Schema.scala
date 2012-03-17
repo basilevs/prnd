@@ -47,7 +47,7 @@ object Schema extends SSchema {
 		}
 		val phRD = pr("Phys.Rev.D", 4.964F)
 		pr("Phys.Rev.Lett.", 7.622F)
-		pr("Nucl.Phys.Proc.Suppl", 0)
+		pr("Nucl.Phys.Proc.Suppl.", 0)
 		pr("Phys.Lett.B", 5.255F)
 		pr("Nucl.Instrum.Meth.A", 1.142F)
 		pr("arXiv", 6F)
@@ -132,6 +132,16 @@ class Publication(
 			case Oral => if (p.international) 15 else 10
 			case Stand => if (p.international) 5 else 3	
 		}
+	}
+	def findOrInsert:Publication = {
+		assert(id == 0)
+		from(Schema.publications) ( p => where(
+				(p.publisherId === publisherId) and
+				(p.year === year) and
+				(p.title === title)
+			)
+			select(p)
+		).headOption.getOrElse(Schema.publications.insert(this))
 	}
 }
 
