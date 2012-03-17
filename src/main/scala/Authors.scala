@@ -20,7 +20,7 @@ class Authors extends Servlet {
 	get("/:id") {
 		transaction {
 			val author = Schema.authors.lookup(getId)
-			author.filter(isAuthorEditable).map { a =>
+			author.map { a =>
 				contentType = "text/html"
 				layoutTemplate("authorById",
 					"it" -> a,
