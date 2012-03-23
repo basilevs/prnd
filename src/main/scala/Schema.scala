@@ -12,9 +12,10 @@ object Schema extends SSchema {
 	on(publications)(s => declare(
 		s.title	is(dbType("varchar(255)"))
 	))
-	val publisherToPublications = oneToManyRelation(publishers, publications)
-		.via((pr, pn) => pn.publisherId === pr.id)
-	publisherToPublications.foreignKeyDeclaration.constrainReference(onDelete cascade)
+	val publisherToPublications = manyToManyRelation[Publisher, Publication, PublisherToPublication](publishers, publications)
+		.via[PublisherToPublication]((pr, pn, pp) => (pr.id === pp.publisherId, pn.id === pp.publicationId))
+	publisherToPublications.leftForeignKeyDeclaration.constrainReference(onDelete cascade)
+	publisherToPublications.rightForeignKeyDeclaration.constrainReference(onDelete cascade)
 	
 	val authors = table[Author]
 	val publicationToAuthors = manyToManyRelation[Publication, Author, Authorship](publications, authors)
@@ -59,10 +60,12 @@ object Schema extends SSchema {
 		skovpen.groups.associate(babar)
 		val blinov  = authors.insert(new Author("Блинов Владимир Евгеньевич","Blinov, V.E."))
 		blinov.groups.associate(kedr)
-		val pn1 = publications.insert(new Publication(phRD.id, 100, 2011, "Measurement of partial branching fractions of inclusive charmless B meson decays to K+, K0, and pi+"))
+		val pn1 = publications.insert(new Publication(100, 2011, "Measurement of partial branching fractions of inclusive charmless B meson decays to K+, K0, and pi+"))
+		pn1.publishers.associate(phRD)
 		pn1.authors.associate(skovpen)
 		pn1.groups.associate(babar)
-		val pn2 = publications.insert(new Publication(phRD.id, 100, 2011, "Measurements of branching fractions, polarizations, and direct CP-violation asymmetries in B+ -> rho0 K*+ and B+ -> f0(980)K*+ decays"))
+		val pn2 = publications.insert(new Publication(100, 2011, "Measurements of branching fractions, polarizations, and direct CP-violation asymmetries in B+ -> rho0 K*+ and B+ -> f0(980)K*+ decays"))
+		pn2.publishers.associate(phRD)
 		pn2.authors.associate(skovpen)
 	}
 }
@@ -75,7 +78,9 @@ class Author(var name:String, var inspireName:String = "") extends KeyedEntity[I
 	lazy val groups = Schema.authorToGroup.left(this)
 }
 
-class Authorship(val author:Int, val publication:Int) extends KeyedEntity[CompositeKey2[Int,Int]] {
+class Authorship extends KeyedEntity[CompositeKey2[Int,Int]] {
+	val author = 0
+	val publication = 0
 	def id = compositeKey(author, publication)
 }
 
@@ -100,6 +105,12 @@ object Publisher {
 		from(Schema.publishers)(select(_))
 	}
 }
+
+class PublisherToPublication(val pubType: PublicationType.Type) extends KeyedEntity[CompositeKey2[Int,Int]] {
+	val publisherId = 0
+	val publicationId = 0
+	def id = compositeKey(publisherId, publicationId)
+}
  
 object PublicationType extends Enumeration {
 	type Type = Value
@@ -110,34 +121,30 @@ object PublicationType extends Enumeration {
 }
 
 class Publication(
-		var publisherId: Int = 0,
 		var authorCount:Int = 0,
 		var year: Int = 0,
-		var title: String ="",
-		var pubType:PublicationType.Type = PublicationType.Article
+		var title: String =""
 	)  extends KeyedEntity[Int] with Cost {
 	def this() = this(0)
 	val id = 0
 	lazy val authors = Schema.publicationToAuthors.left(this)
-	lazy val publisher = Schema.publisherToPublications.right(this)
+	lazy val publishers = Schema.publisherToPublications.right(this)
 	lazy val groups = Schema.publicationToGroup.left(this)
-	def isValid = {
-		publisherId != 0 && year != 0 && title.length >5 && authorCount > 0 && publisher.single.allowedPublications.contains(pubType)
-	}
 	def cost:Float = {
-		import PublicationType._	
-		val p = publisher.single
-		pubType match {
-			case Article => p.cost / (if (authorCount<10) authorCount else 10)
-			case Invited => if (p.international) 45 else 30
-			case Oral => if (p.international) 15 else 10
-			case Stand => if (p.international) 5 else 3	
-		}
+		publishers.associationMap.map { case (p, ass) =>
+			import PublicationType._
+			ass.pubType match {
+				case Article => p.cost / (if (authorCount<10) authorCount else 10)
+				case Invited => if (p.international) 45 else 30
+				case Oral => if (p.international) 15 else 10
+				case Stand => if (p.international) 5 else 3	
+			}
+		}.sum
 	}
-	def findOrInsert:Publication = {
+	def findOrInsert: Publication = {
 		assert(id == 0)
 		from(Schema.publications) ( p => where(
-				(p.publisherId === publisherId) and
+//TODO:				(p.publisherId === publisherId) and
 				(p.year === year) and
 				(p.title === title)
 			)

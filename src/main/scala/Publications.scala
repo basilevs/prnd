@@ -15,16 +15,24 @@ class Publications extends Servlet {
 	def getPublication: Publication = {
 		val yearStr = params.getOrElse("year",  (Calendar.getInstance.get(Calendar.YEAR)-1).toString)
 		val year = if (yearStr=="") 0 else yearStr.toInt
-		val publisherId = params.getOrElse("publisherId", "0").toInt
-		val defaultPubType = Schema.publishers.lookup(publisherId).map(_.allowedPublications.head).getOrElse(PublicationType.Article)
 		val rv = new Publication(
-			publisherId,
 			params.getOrElse("authorCount", "100").toInt,
 			year,
-			params.getOrElse("title", ""),
-			PublicationType(params.getOrElse("pubType", defaultPubType.id.toString).toInt)
+			params.getOrElse("title", "")
 		)
 		rv
+	}
+	class BadPublisher(reason:Exception) extends RuntimeException(reason)
+	def getPublisher: Option[Publisher] = {
+		try {
+			params.get("publisherId").map(_.toInt).map { id =>
+				val publisher = Schema.publishers.lookup(id).get
+				publisher
+			}
+		} catch {
+			case e:NoSuchElementException => throw new BadPublisher(e)
+			case e:NumberFormatException => throw new BadPublisher(e)
+		}
 	}
 	def similarPublications(it:Publication) = {
 		val fields:Iterable[String] = it.title.split(" +")
@@ -33,12 +41,10 @@ class Publications extends Servlet {
 			fields.size == 0 || !fields.exists(title.indexOf(_) == -1)
 		}
 //		Session.currentSession.setLogger(println(_))
-		val publisher:Int = it.publisherId
 		val year:Int = it.year
 //		println("Similar publications "+publisher)
 		val loaded:Iterable[Publication] = from(Schema.publications)(
 			p => where(
-					( publisher === 0 or p.publisherId === publisher ) and
 					(year === 0 or p.year === year )
 				)
 			select(p)
@@ -79,7 +85,7 @@ class Publications extends Servlet {
 			resourceNotFound()
 		}
 	}
-	class Invalid extends RuntimeException
+	class Invalid(message:String) extends RuntimeException(message)
 	get("/:id/save") {
 		var id:Int = params.getOrElse("id", "0").toInt
 		try {
@@ -88,10 +94,13 @@ class Publications extends Servlet {
 				val it = Schema.publications.lookup(id).getOrElse(newData)
 				it.title = newData.title
 				it.authorCount = newData.authorCount
-				it.publisherId = newData.publisherId
-				it.pubType = newData.pubType
-				if (!it.isValid)
-					throw new Invalid()
+				it.year = newData.year
+				if (it.title.length < 5)
+					throw new Invalid("Title is too short")
+				if (it.authorCount < 1)
+					throw new Invalid("Wrong author count")
+				if (it.year < 2010)
+					throw new Invalid("Year is earlier then 2010")
 				Schema.publications.insertOrUpdate(it)
 				assert(it.id != 0)
 				id = it.id

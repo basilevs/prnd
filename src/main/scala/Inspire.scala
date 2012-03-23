@@ -29,18 +29,24 @@ class Inspire(val author:Author, year:Int) {
 	def run {
 		saveArticles(getBibtex)
 	}
-	def saveArticles(publications:Iterable[Publication]) {
-		for(p <- publications) {
+	type PublicationPublishers = (Publication, Seq[Publisher])
+	def saveArticles(publications:Iterable[PublicationPublishers]) {
+		for(pair <- publications) {
+			val p = pair._1
 			val saved = p.findOrInsert
 			saved.authors.dissociate(author)
 			saved.authors.associate(author)
+			for (pr <- pair._2) {
+				p.publishers.dissociate(pr)
+				p.publishers.associate(pr)
+			}
 		}
 	}
 	def getBibtex = {
 		var uri = new URI("http", "inspirehep.net", "/search", "p=author:\""+author.inspireName+"\"+AND+date:\""+year+"\"&of=hx&rg=200","")
 		println(uri)
-		val stream = new FileInputStream(new File("search.htm"))
-//		val stream = uri.toURL.openConnection.getInputStream
+//		val stream = new FileInputStream(new File("search.htm"))
+		val stream = uri.toURL.openConnection.getInputStream
 		val parserFactory = new org.ccil.cowan.tagsoup.jaxp.SAXFactoryImpl
 		val parser = parserFactory.newSAXParser()
 		val adapter = new scala.xml.parsing.NoBindingFactoryAdapter
@@ -59,7 +65,7 @@ class Inspire(val author:Author, year:Int) {
 	def parseHTML(data:String) = {
 		scala.xml.Text(data).text
 	}
-	def bibTexNodeToPublication(elem:Node):Iterable[Publication] = {
+	def bibTexNodeToPublication(elem:Node):Iterable[PublicationPublishers] = {
 		val sections = elem.text.split("\",\n +")
 		val fields = (sections filter (_.length > 4) map fieldToPair).toMap
 		println(fields("SLACcitation"))
@@ -69,12 +75,12 @@ class Inspire(val author:Author, year:Int) {
 		val raw = fields("title")
 		println("Raw: "+raw)
 		val parsed1 = parseHTML(raw)
-		println("Parsed1: "+parsed1)
+//		println("Parsed1: "+parsed1)
 		val stripped = parsed1.replaceAll("^\\{|\\}$", "")
-		println("Stripped: "+stripped)
+//		println("Stripped: "+stripped)
 		val title = stripped.replaceAll("&gt;", ">");
-		println(title)
-		val p = new Publication(publisher.id, 100, year, title)
-		Seq(p)
+		println(title+": " + year)
+		val p = new Publication(100, year, title)
+		Seq((p, Seq(publisher)))
 	}
 }
