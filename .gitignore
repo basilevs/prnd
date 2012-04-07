@@ -10,3 +10,6 @@ target/
 *.ipr
 *.iws
 .*.sw?
+.cache
+.classpath
+.project
