@@ -1,5 +1,6 @@
 package prnd;
 import org.squeryl.PrimitiveTypeMode._
+import org.squeryl.{Queryable, Query}
 import org.squeryl.Session
 import java.util.Calendar
 
@@ -34,28 +35,44 @@ class Publications extends Servlet {
 			case e:NumberFormatException => throw new BadPublisher(e)
 		}
 	}
-	def similarPublications(it:Publication) = {
+	def similarPublications(it:Publication, publishers:Set[Publisher]): Iterable[Publication] = {
 		val fields:Iterable[String] = it.title.split(" +")
 //		fields.map(println)
 		def similarTitle(title:String) = {
 			fields.size == 0 || !fields.exists(title.indexOf(_) == -1)
 		}
-//		Session.currentSession.setLogger(println(_))
+		Session.currentSession.setLogger(println(_))
 		val year:Int = it.year
 //		println("Similar publications "+publisher)
-		val loaded:Iterable[Publication] = from(Schema.publications)(
-			p => where(
-					(year === 0 or p.year === year )
+		val query1:Queryable[Publication] = if (it.year == 0)
+			Schema.publications
+		else
+			from(Schema.publications)( p =>
+				where(
+					(p.year === it.year )
 				)
-			select(p)
-		)
-		for (p <- loaded if similarTitle(p.title) ) yield p
+				select(p)
+			)
+		val query2:Queryable[Publication] = if (publishers.isEmpty) query1 else {
+			join(query1, Schema.publisherToPublications) (
+				(p,r) =>
+					where(r.publisherId in publishers.map(_.id))
+					select(p)
+					on(r.publicationId === p.id)
+			)
+		}
+		from(query2)(select(_)).filter(p => similarTitle(p.title))
 	}
 	get("/") {
 		transaction {
 			contentType = "text/html"
 			val it = getPublication
-			layoutTemplate("publications", "it"->it, "publications" -> similarPublications(it))
+			val publisher = getPublisher
+			layoutTemplate("publications",
+				"it"->it,
+				"publications" -> similarPublications(it, publisher.toSet),
+				"publisherId" -> publisher.map(_.id)
+			)
 		}
 	}
 	get("/:id") {
