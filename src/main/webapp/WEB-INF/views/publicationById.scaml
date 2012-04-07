@@ -2,18 +2,24 @@
 -@ val authors: Iterable[prnd.Author]
 -@ val editable: Boolean = false
 - attributes("title") = it.title
+-if (editable)
+	%p
+		%a(href={it.id+"/edit"}) Редактировать
+%p 
+	Издатели:
+	- for (publisher <- it.publishers)
+		= view(publisher)
+	
 %p
-	= view(it.publisher.single)
+	Год издания:
 	= it.year.toString
 %p
+	Коллаборации:
 	-for(g <- it.groups)
 		= view(g)
 %p
 	Полное число авторов:
 	= it.authorCount
--if (editable)
-	%p
-		%a(href={it.id+"/edit"}) Редактировать
 %h2
 	Авторы
 -for (a <- authors)

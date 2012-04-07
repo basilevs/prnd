@@ -17,11 +17,6 @@
 		-for (p <- prnd.PublicationType.values)
 			%option(value={p.id} selected={p == it.pubType})
 				= p.toString
-	%h2 Издатель
-	%select(name="publisherId")
-		-for (p <- prnd.Publisher.all)
-			%option(value={p.id} selected={p.id == it.publisherId})
-				= p.name		
 	%h2 Год издания
 	%input(type="text" size="4" name="year" value={if (it.year == 0) "" else ""+it.year})
 	%h2 Число авторов
