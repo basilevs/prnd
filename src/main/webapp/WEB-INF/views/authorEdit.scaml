@@ -3,7 +3,7 @@
 -@ val allowedGroups: Set[prnd.WorkGroup] = Set()
 - attributes("title") = it.name
 
-%a(href=".") Просмотр
+%a(href={"../"+it.id}) Просмотр
 
 %h2 Имя
 %form(action="saveName")
@@ -118,7 +118,8 @@
 		%input(type="text" size="50" name="inspireName" value={it.inspireName} disabled={!canChangeInspire} )
 		%input(type="submit" value="Сохранить" disabled={!canChangeInspire})
 %h3 Импорт
-Работает долго, дает нагрузку на сервер, больше раза не кликать.
+Чтобы импортировать статьи из системы INSPIRE выберите год, нажмите кнопку. Поскольку ПРНД расчитывается за два года, процедуру надо проделать дважды (выбирая разные года).
+Работает долго, лишний раз не нажимайте. 
 %form(action="inspireImport")
 	= render("yearSelect.scaml")
 	%input(type="submit" value="Импорт")

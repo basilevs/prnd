@@ -1,7 +1,9 @@
 -@ val publishers: Iterable[prnd.Publisher]
-- attributes("title") = "Издатели"
+- attributes("title") = "Издательства и конференции"
 %ul
 	- for (a <- publishers)
 		%li
 			- view(a)
+
+%a(href="publishers/0/edit") Добавить издательство или конференцию
 

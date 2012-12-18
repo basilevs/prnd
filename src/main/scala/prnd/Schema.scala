@@ -8,6 +8,10 @@ import org.squeryl.annotations.Column
 object Schema extends SSchema {
 	override def applyDefaultForeignKeyPolicy(foreignKeyDeclaration: ForeignKeyDeclaration) = foreignKeyDeclaration.constrainReference
 	val publishers = table[Publisher]
+	on(publishers)(s => declare(
+	    s.name      is(unique,indexed)
+	))
+
 	val publications = table[Publication]
 	on(publications)(s => declare(
 		s.title	is(dbType("varchar(255)"))
