@@ -1,0 +1,25 @@
+-@ val it: prnd.Publisher
+-val publications = it.publications
+-attributes("title") = it.name
+
+%a(href={it.id+"/edit"}) Изменить
+
+%p
+	Импакт фактор:
+	= {it.impact}
+%p
+	Цена для ПРНД:
+	= {it.cost}	
+-if (it.isConference)
+	%p Конференция
+
+-if (it.international)
+	%p Международное
+
+%h2
+	Публикации
+%ul
+	-for (p <- it.publications)
+		%li
+			= view(p)
+

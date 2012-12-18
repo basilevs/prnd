@@ -1,0 +1,19 @@
+-@val it: prnd.Publisher
+-import  org.squeryl.PrimitiveTypeMode._
+-attributes("title") = it.name
+
+%form(action={"../"+it.id +"/save"})
+	%p
+		Название:
+		%input(type="text" name="name" value = {it.name})
+		%br
+		Название должно совпадать с коротким названием издания в системе
+		%a(href="http://inspirehep.net") INSPIRE			
+	%p
+		Импакт фактор:
+		%input(type="text" name ="cost" value = {it.impact})
+	%p
+		%input(type="checkbox" name={"isConference"} checked={it.isConference}) Конференция
+	%p
+		%input(type="checkbox" name="isInternational" checked={it.international}) Зарубежный издатель
+	%input(type="submit" value="Сохранить")

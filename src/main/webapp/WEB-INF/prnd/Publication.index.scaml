@@ -1,5 +1,5 @@
 -@ val it: Publication
-%a(href={"/publications/"+it.id})
+%a(href={request.getContextPath+"/publications/"+it.id})
 	= it.title
 ,
 - for (publisher <- it.publishers)

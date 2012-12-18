@@ -98,8 +98,13 @@ class Authors extends Servlet {
 			Schema.authors.lookup(id).map { author =>
 				if (!isAuthorEditable(author))
 					throw new AccessDenied
-				new Inspire(author, params("year").toInt).run
-				None
+				val errors:Seq[Exception] = new Inspire(author, params("year").toInt).run
+				if (errors.isEmpty)
+					None
+				else {
+					contentType = "text/html"
+					Option(layoutTemplate("error", "it" -> "Некоторые публикации не удалось импортировать из-за следующих проблем.", "errors" -> errors))					
+				}
 			} getOrElse	Option(resourceNotFound())
 		}
 	}

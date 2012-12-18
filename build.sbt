@@ -16,8 +16,10 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.0.0" % "runtime",
   "org.eclipse.jetty" % "jetty-webapp" % "7.4.5.v20110725" % "container",
   "javax.servlet" % "servlet-api" % "2.5" % "provided",
-  "org.squeryl" %% "squeryl" % "0.9.4",
+  "org.squeryl" %% "squeryl" % "0.9.5",
   "mysql" % "mysql-connector-java" % "5.1.10"
 )
 
 resolvers += "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
+
+excludeFilter in unmanagedSources := "WebApp.scala" 

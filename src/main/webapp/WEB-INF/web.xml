@@ -18,7 +18,14 @@ xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns
 		<servlet-name>Groups</servlet-name>
 		<servlet-class>prnd.Groups</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>Publishers</servlet-name>
+		<servlet-class>prnd.Publishers</servlet-class>
+	</servlet>
 
+	<servlet-mapping>
+		<servlet-name>Publishers</servlet-name> <url-pattern>/publishers/*</url-pattern>
+	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>Groups</servlet-name> <url-pattern>/groups/*</url-pattern>
 	</servlet-mapping>

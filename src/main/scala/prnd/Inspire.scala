@@ -6,7 +6,9 @@ import scala.xml._
 import org.squeryl.PrimitiveTypeMode._
 import org.xml.sax.InputSource
 
-
+class UnknownJournal(name:String, volume:String = "")
+extends RuntimeException("Незарегистрированное издание: "+name+", том: "+volume) {
+}
 
 class Inspire(val author:Author, year:Int) {
 	def tryJournal(name:String): Option[Publisher] = {
@@ -16,9 +18,6 @@ class Inspire(val author:Author, year:Int) {
 			select(p)
 		).headOption
 	}
-	class UnknownJournal(name:String, volume:String = "")
-	extends RuntimeException("Незарегистрированное издание: "+name+", том: "+volume) {
-	}
 	def guessJournal(name:String, volume:String):Publisher = {
 		val j = tryJournal(name+volume(0)).orElse(tryJournal(name))
 		if (j.isEmpty)
@@ -26,21 +25,32 @@ class Inspire(val author:Author, year:Int) {
 		j.get
 	}
 	//Use inside transaction
-	def run {
-		saveArticles(getBibtex)
-	}
-	type PublicationPublishers = (Publication, Seq[Publisher])
-	def saveArticles(publications:Iterable[PublicationPublishers]) {
-		for(pair <- publications) {
-			val p = pair._1
-			val saved = p.findOrInsert
-			saved.authors.dissociate(author)
-			saved.authors.associate(author)
-			for (pr <- pair._2) {
-				p.publishers.dissociate(pr)
-				p.publishers.associate(pr)
+	def run: Seq[Exception] = saveArticles(getBibtex)
+	type PublicationPublishers = (Publication, Seq[Publisher], Exception)
+	def saveArticles(publications:Iterable[PublicationPublishers]): Seq[Exception] = {
+		{for(pair <- publications) yield {
+			if (pair._3 != null) {
+				pair._3
+			} else {
+				try {
+					val p = pair._1
+					val saved = p.findOrInsert
+					saved.authors.dissociate(author)
+					saved.authors.associate(author)
+					for (pr <- pair._2) {
+						try {
+							saved.publishers.dissociate(pr)
+							saved.publishers.associate(pr)
+						} catch {
+							case e: Exception => throw new RuntimeException("Failed to associate "+saved+" and "+pr, e)
+						}
+					}
+					null
+				} catch {
+					case e: Exception => e
+				}
 			}
-		}
+		}}.toSeq.filter(_!=null)
 	}
 	def getBibtex = {
 		var uri = new URI("http", "inspirehep.net", "/search", "p=author:\""+author.inspireName+"\"+AND+date:\""+year+"\"&of=hx&rg=200","")
@@ -68,19 +78,23 @@ class Inspire(val author:Author, year:Int) {
 	def bibTexNodeToPublication(elem:Node):Iterable[PublicationPublishers] = {
 		val sections = elem.text.split("\",\n +")
 		val fields = (sections filter (_.length > 4) map fieldToPair).toMap
-		println(fields("SLACcitation"))
-		println(fields("journal")+fields("volume"))
-		val publisher = guessJournal(fields("journal"), fields("volume"))
+//		println(fields("SLACcitation"))
+//		println(fields("journal")+fields("volume"))
 		val year = fields("year").toInt
 		val raw = fields("title")
-		println("Raw: "+raw)
+//		println("Raw: "+raw)
 		val parsed1 = parseHTML(raw)
 //		println("Parsed1: "+parsed1)
 		val stripped = parsed1.replaceAll("^\\{|\\}$", "")
 //		println("Stripped: "+stripped)
 		val title = stripped.replaceAll("&gt;", ">");
-		println(title+": " + year)
+//		println(title+": " + year)
 		val p = new Publication(100, year, title)
-		Seq((p, Seq(publisher)))
+		try {
+			val publisher = guessJournal(fields("journal"), fields("volume"))
+			Seq((p, Seq(publisher), null))
+		} catch {
+			case e:Exception => Seq((p, Seq(), e))
+		}
 	}
 }

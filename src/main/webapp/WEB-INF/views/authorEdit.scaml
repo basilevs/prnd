@@ -2,6 +2,9 @@
 -@ val canChangeInspire:Boolean = false
 -@ val allowedGroups: Set[prnd.WorkGroup] = Set()
 - attributes("title") = it.name
+
+%a(href=".") Просмотр
+
 %h2 Имя
 %form(action="saveName")
 	%input(type="text" size="50" name="name" value={it.name})
@@ -31,7 +34,7 @@
 		%a(href="/publications") остаются.
 %p
 	Добавить 
-	%a(href="/publications") публикации
+	%a(href={request.getContextPath+"/publications"}) публикации
 	можно отредактировав списки их авторов.
 	
 %a(name="subordinates")
@@ -113,7 +116,7 @@
 		Чтобы изменить это поле, обратитесь к ответственному за импорт.
 	%p
 		%input(type="text" size="50" name="inspireName" value={it.inspireName} disabled={!canChangeInspire} )
-		%input(type="submit" value="Сохранить")
+		%input(type="submit" value="Сохранить" disabled={!canChangeInspire})
 %h3 Импорт
 Работает долго, дает нагрузку на сервер, больше раза не кликать.
 %form(action="inspireImport")

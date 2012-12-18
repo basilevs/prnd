@@ -24,7 +24,7 @@
 	%select(name="publisherId")
 		%option(value=0 selected={0 == publisherId}) Любое
 		-for (p <- prnd.Publisher.all)
-			%option(value={p.id} selected={p.id == publisherId})
+			%option(value={p.id} selected={Option(p.id) == publisherId})
 				= p.name
 	%h3 Год издания
 	= render("yearSelect.scaml", Map("hasEmptyYear" -> true, "defaultYear"->it.year))

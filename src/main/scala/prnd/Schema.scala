@@ -38,13 +38,19 @@ object Schema extends SSchema {
 		.via[AuthorToGroup]( (a, g, ag) => (a.id === ag.authorId, ag.groupId === g.id) )
 	val publicationToGroup = manyToManyRelation[Publication, WorkGroup, PublicationToGroup](publications, groups)
 		.via[PublicationToGroup]( (a, g, ag) => (a.id === ag.publicationId, ag.groupId === g.id) )
+
+	def addPermanentEntries {
+		
+	}
 	
 	//To be executed inside transaction
 	def addInitialEntries {
 		val babar = groups.insert(new WorkGroup("BaBar"))
 		val kedr  = groups.insert(new WorkGroup("KEDR"))
-		def pr(name:String, cost:Float) = {
-			publishers.insert(new Publisher(name, cost))
+		val atlas  = groups.insert(new WorkGroup("ATLAS"))
+		val aerogel = groups.insert(new WorkGroup("Aerogel"))
+		def pr(name:String, cost:Float, inter:Boolean = true) = {
+			publishers.insert(new Publisher(name, cost, false, inter, true))
 		}
 		val phRD = pr("Phys.Rev.D", 4.964F)
 		pr("Phys.Rev.Lett.", 7.622F)
@@ -54,19 +60,95 @@ object Schema extends SSchema {
 		pr("arXiv", 6F)
 		pr("Chin.Phys.C", 1.343F)
 		pr("PoS", 0)
-		pr("INP", 6F)
-		val skovpen = authors.insert(new Author("Сковпень Юрий Иванович","Skovpen, Yu.I."))
-		skovpen.groups.associate(kedr)
-		skovpen.groups.associate(babar)
-		val blinov  = authors.insert(new Author("Блинов Владимир Евгеньевич","Blinov, V.E."))
-		blinov.groups.associate(kedr)
-		val pn1 = publications.insert(new Publication(100, 2011, "Measurement of partial branching fractions of inclusive charmless B meson decays to K+, K0, and pi+"))
-		pn1.publishers.associate(phRD)
-		pn1.authors.associate(skovpen)
-		pn1.groups.associate(babar)
-		val pn2 = publications.insert(new Publication(100, 2011, "Measurements of branching fractions, polarizations, and direct CP-violation asymmetries in B+ -> rho0 K*+ and B+ -> f0(980)K*+ decays"))
-		pn2.publishers.associate(phRD)
-		pn2.authors.associate(skovpen)
+		pr("INP", 6F, false)
+		pr("Eur.Phys.J.C", 3.248F)
+		pr("JHEP", 6.049F)
+		pr("New J.Phys", 4.2F)
+		pr("Nucl.Phys.B", 4.642F);
+		{
+			val author  = authors.insert(new Author("Бобровников Виктор Сергеевич","V.S.Bobrovnikov.1"))
+			author.groups.associate(kedr)
+			author.groups.associate(atlas)
+		}
+		{
+			val author  = authors.insert(new Author("Барняков Александр Юрьевич","Y.Y.Barnyakov.2"))
+			author.groups.associate(kedr)
+			author.groups.associate(aerogel)
+		}
+		{
+			val author  = authors.insert(new Author("Барняков Михаил Юрьевич","Y.Y.Barnyakov.1"))
+			author.groups.associate(kedr)
+			author.groups.associate(aerogel)
+		}
+		{
+			val author  = authors.insert(new Author("Басок Иван Юрьевич","Y.Y.Basok.1"))
+			author.groups.associate(kedr)
+		}
+		{
+			val author  = authors.insert(new Author("Блинов Александр Евгеньевич","A.E.Blinov.1"))
+			author.groups.associate(kedr)
+		}
+		{
+			val author  = authors.insert(new Author("Бузыкаев Алексей Рафаилович","A.R.Buzykaev.1"))
+			author.groups.associate(kedr)
+			author.groups.associate(aerogel)
+		}
+		{
+			val author  = authors.insert(new Author("Гулевич Василий Викторович","V.V.Gulevich.1"))
+			author.groups.associate(kedr)
+		}
+		{
+			val author  = authors.insert(new Author("Гусев Дмитрий Владимирович","D.V.Gusev.1"))
+			author.groups.associate(kedr)
+		}
+		{
+			val author  = authors.insert(new Author("Кононов Сергей Анатольевич","S.A.Kononov.1"))
+			author.groups.associate(kedr)
+		}
+		{
+			val author  = authors.insert(new Author("Кравченко Евгений Анатольевич","E.A.Kravchenko.2"))
+			author.groups.associate(kedr)
+		}
+		{
+			val author  = authors.insert(new Author("Николаев Иван Борисович","I.B.Nikolaev.1"))
+			author.groups.associate(kedr)
+		}
+		{
+			val author  = authors.insert(new Author("Онучин Алексей Павлович","A.P.Onuchin.1"))
+			author.groups.associate(kedr)
+		}
+		{
+			val author  = authors.insert(new Author("Присекин Вячеслав Геннадьевич","V.G.Prisekin.1"))
+			author.groups.associate(kedr)
+		}
+		{
+			val author  = authors.insert(new Author("Сковпень Юрий Иванович","Y.I.Skovpen.1"))
+			author.groups.associate(kedr)
+		}
+		{
+			val author  = authors.insert(new Author("Таюрский Валерий Алексеевич","V.A.Tayursky.1"))
+			author.groups.associate(kedr)
+		}
+		{
+			val author  = authors.insert(new Author("Тельнов Валерий Иванович","V.I.Telnov.1"))
+			author.groups.associate(kedr)
+		}
+		{
+			val author  = authors.insert(new Author("Харламова Татьяна Александровна","T.A.Kharlamova.1"))
+			author.groups.associate(kedr)
+		}
+		{
+			val author  = authors.insert(new Author("Тодышев Корнелий Юрьевич","Y.Y.Todyshev.1"))
+			author.groups.associate(kedr)
+		}
+		{
+			val author  = authors.insert(new Author("Шамов Андрей Георгиевич","A.G.Shamov.1"))
+			author.groups.associate(kedr)
+		}
+		{
+			val blinov  = authors.insert(new Author("Блинов Владимир Евгеньевич","V.E. Blinov"))
+			blinov.groups.associate(kedr)
+		}
 	}
 }
 
@@ -88,7 +170,7 @@ trait Cost {
 	def cost: Float
 }
 
-class Publisher(val name: String, val cost:Float, val isConference:Boolean = false, val international:Boolean = true, val isImported:Boolean = false) extends KeyedEntity[Int] with Cost {
+class Publisher(var name: String, var impact:Float, var isConference:Boolean = false, var international:Boolean = true, var isImported:Boolean = false) extends KeyedEntity[Int] with Cost {
 	val id = 0
 	def allowedPublications:Set[PublicationType.Type] = {
 		import PublicationType._
@@ -98,6 +180,15 @@ class Publisher(val name: String, val cost:Float, val isConference:Boolean = fal
 			Set(Article)
 		}
 	}
+	lazy val publications = Schema.publisherToPublications.left(this)
+	def cost = {
+		if (isConference)
+			0
+		else if (international)
+			impact * 30
+		else
+			impact * 45
+	}
 }
 
 object Publisher {
@@ -106,14 +197,6 @@ object Publisher {
 	}
 }
 
-class PublisherToPublication(var pubType: PublicationType.Type) extends KeyedEntity[CompositeKey2[Int,Int]] {
-	def this() = this(PublicationType.Article)
-	val publisherId = 0
-	val publicationId = 0
-	def id = compositeKey(publisherId, publicationId)
-	lazy val publisher:Publisher = Schema.publishers.lookup(publicationId).get 
-}
- 
 object PublicationType extends Enumeration {
 	type Type = Value
 	val Article = Value(1, "Статья")
@@ -121,6 +204,25 @@ object PublicationType extends Enumeration {
 	val Oral = Value(3, "Устный доклад")
 	val Stand = Value(4, "Стэндовый доклад")
 }
+
+class PublisherToPublication(var pubType: PublicationType.Type) extends KeyedEntity[CompositeKey2[Int,Int]] {
+	def this() = this(PublicationType.Article)
+	val publisherId = 0
+	val publicationId = 0
+	def id = compositeKey(publisherId, publicationId)
+	lazy val publisher:Publisher = Schema.publishers.lookup(publisherId).get 
+	lazy val publication:Publication = Schema.publications.lookup(publicationId).get 
+	lazy val cost = {	
+		import PublicationType._
+		pubType match {
+			case Article => publisher.cost / (if (publication.authorCount<10) publication.authorCount else 10)
+			case Invited => if (publisher.international) 45 else 30
+			case Oral => if (publisher.international) 15 else 10
+			case Stand => if (publisher.international) 5 else 3	
+		}
+	}
+}
+ 
 
 class Publication(
 		var authorCount:Int = 0,
@@ -133,15 +235,7 @@ class Publication(
 	lazy val publishers = Schema.publisherToPublications.right(this)
 	lazy val groups = Schema.publicationToGroup.left(this)
 	def cost:Float = {
-		publishers.associationMap.map { case (p, ass) =>
-			import PublicationType._
-			ass.pubType match {
-				case Article => p.cost / (if (authorCount<10) authorCount else 10)
-				case Invited => if (p.international) 45 else 30
-				case Oral => if (p.international) 15 else 10
-				case Stand => if (p.international) 5 else 3	
-			}
-		}.sum
+		publishers.associationMap.map { case (p, ass) => ass.cost}.sum
 	}
 	def findOrInsert: Publication = {
 		assert(id == 0)

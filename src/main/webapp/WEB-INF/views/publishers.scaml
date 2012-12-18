@@ -1,0 +1,7 @@
+-@ val publishers: Iterable[prnd.Publisher]
+- attributes("title") = "Издатели"
+%ul
+	- for (a <- publishers)
+		%li
+			- view(a)
+

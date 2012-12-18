@@ -1,33 +1,53 @@
 -@ val it: prnd.Publication
 -@ val authors: Iterable[(prnd.Author, Boolean)]
 -@ val allowedGroups: Set[prnd.WorkGroup] = Set()
-- attributes("title") = it.title
-%form(action="save")
-	%h2 Заголовок
+-import org.squeryl.PrimitiveTypeMode._
+-attributes("title") = it.title
+%h2 Заголовок
+%form(action="saveTitle")
 	%input(type="text" size="100" name="title" value={it.title})
-	%h2 Группы
-	%p
-		-val setGroups = it.groups.toSet
-		-val allGroups:Seq[prnd.WorkGroup] = setGroups.toSeq ++ (allowedGroups -- setGroups)
-		-for(g <- allGroups)
-			%input(type="checkbox" name={"g_"+g.id} checked={setGroups.contains(g)} disabled={!allowedGroups.contains(g)})
-				= view(g)
-	%h2 Тип
+	%input(type="submit" value="Сохранить заголовок")
+%h2 Группы
+%form(action="saveGroups")
+	-val setGroups = it.groups.toSet
+	-val allGroups:Seq[prnd.WorkGroup] = setGroups.toSeq ++ (allowedGroups -- setGroups)
+	-for(g <- allGroups)
+		%input(type="checkbox" name={"g_"+g.id} checked={setGroups.contains(g)} disabled={!allowedGroups.contains(g)})
+			= view(g)
+	%input(type="submit" value="Сохранить группы")
+
+%h2 Издатели
+%h3 Удалить
+%form(action="deletePublishers")
+	-for(p:prnd.PublisherToPublication <- it.publishers.associations)
+		%input(type="checkbox" name={"p_"+p.publisherId}) = view(p)
+	%input(type="submit" value="Удалить отмеченных издателей")
+%h3 Добавить
+%form(action="addPublisher")
+	Тип издания:
 	%select(name="pubType")
 		-for (p <- prnd.PublicationType.values)
-			%option(value={p.id} selected={p == it.pubType})
+			%option(value={p.id})
 				= p.toString
-	%h2 Год издания
+	%select(name="publisherId")
+		-for (p <- from(prnd.Schema.publishers)(select(_)))
+			%option(value={p.id})
+				= p.name
+	%input(type="submit" value="Добавить издателя")
+%h2 Год издания
+%form(action="saveYear")
 	%input(type="text" size="4" name="year" value={if (it.year == 0) "" else ""+it.year})
-	%h2 Число авторов
-	%input(type="text" size="4" name="authorCount" value={it.authorCount})
-	
-	%h2 Авторы
+	%input(type="submit" value="Сохранить год")
+%h2 Число авторов
+%form(action="saveAuthorCount")
+	%input(type="text" size=4 name="authorCount" value={it.authorCount})
+	%input(type="submit" value="Сохранить число авторов")
+
+%h2 Авторы
+%form(action="saveAuthorCount")
 	%ul
-		- for (pair <- authors)
+		-for (pair <- authors)
 			%li 
-				%input(type="checkbox" name={"a_"+pair._1.id} checked={pair._2}) = view(pair._1)
-	%input(type="submit" value="Сохранить")
-
-
-
+				%input(type="checkbox" name={"a_"+pair._1.id} checked={pair._2})
+					= view(pair._1)		
+	%input(type="submit" value="Сохранить авторов")

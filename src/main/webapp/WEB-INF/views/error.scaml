@@ -1,5 +1,6 @@
 -@ var it:String = "Что-то не так"
 -@ val error:RuntimeException = null
+-@ val errors:Seq[Exception] = null
 - attributes("title") = "Ошибка"
 %p
 	= it
@@ -9,4 +10,11 @@
 	%h2	Технические детали
 	= error.getClass.getName
 	= error.getLocalizedMessage()
+- if (errors != null)
+	%h2	Технические детали
+	%ol
+	- for (a <- errors)
+		%li
+			- view(a)
+
 	
