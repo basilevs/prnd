@@ -50,11 +50,12 @@ class Publishers extends Servlet {
 			transaction {
 				val newData = parsePublisher
 				val it = Schema.publishers.lookup(id).getOrElse(newData)
+				print ("Publisher saved as "+id)
 				it.name = newData.name
 				it.impact = newData.impact
 				it.isConference = newData.isConference
 				it.international = newData.international
-				Schema.publishers.insertOrUpdate(it)
+				id = Schema.publishers.insertOrUpdate(it).id
 			}
 			redirect("../"+id) //Should be outside transaction!!!
 		} catch {

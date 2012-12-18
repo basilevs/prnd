@@ -63,7 +63,7 @@ object Schema extends SSchema {
 		pr("INP", 6F, false)
 		pr("Eur.Phys.J.C", 3.248F)
 		pr("JHEP", 6.049F)
-		pr("New J.Phys", 4.2F)
+		pr("New J.Phys.", 4.2F)
 		pr("Nucl.Phys.B", 4.642F);
 		{
 			val author  = authors.insert(new Author("Бобровников Виктор Сергеевич","V.S.Bobrovnikov.1"))
