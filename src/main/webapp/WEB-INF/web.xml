@@ -5,6 +5,10 @@ xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns
 	<servlet>
 		<servlet-name>Root</servlet-name>
 		<servlet-class>prnd.Root</servlet-class>
+		<init-param>
+			<param-name>allowSchemaDrop</param-name>
+			<param-value>true</param-value>
+		</init-param>
 	</servlet>
 	<servlet>
 		<servlet-name>Authors</servlet-name>

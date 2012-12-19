@@ -23,3 +23,5 @@ libraryDependencies ++= Seq(
 resolvers += "Sonatype OSS Snapshots" at "http://oss.sonatype.org/content/repositories/snapshots/"
 
 excludeFilter in unmanagedSources := "WebApp.scala" 
+
+port in container.Configuration := 7000
