@@ -143,9 +143,9 @@ class Publications extends Servlet {
 	get("/:id/saveYear") { handleExceptions { transactionOrRedirect("edit") {
 			val p = currentPublication 
 			try {
-				p.authorCount = params("authorCount").toInt
+				p.year = params("year").toInt
 			} catch {
-				case e: NumberFormatException => Option(new BadInput("Неверно введено число авторов: "+params("authorCount"), e))
+				case e: NumberFormatException => Option(new BadInput("Неверно введен год: "+params("year"), e))
 			}
 			Schema.publications.update(p)
 			None
@@ -153,9 +153,9 @@ class Publications extends Servlet {
 	get("/:id/saveAuthorCount") { handleExceptions { transactionOrRedirect("edit") {
 			val p = currentPublication 
 			try {
-				p.year = params("year").toInt
+				p.authorCount = params("authorCount").toInt
 			} catch {
-				case e: NumberFormatException => Option(new BadInput("Неверно введен год: "+params("year"), e))
+				case e: NumberFormatException => Option(new BadInput("Неверно введено число авторов: "+params("authorCount"), e))
 			}
 			Schema.publications.update(p)
 			None
@@ -168,7 +168,7 @@ class Publications extends Servlet {
 	}}}
 	get("/:id/saveAuthors") { handleExceptions { transactionOrRedirect("edit") {
 		val it = currentPublicationEditable
-		updateAssociations("a_", Schema.authors, it.groups)
+		updateAssociations("a_", Schema.authors.toSet, it.authors)
 		None
 	}}}
 	get("/:id/addPublisher") { handleExceptions { transactionOrRedirect("edit") {

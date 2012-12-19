@@ -2,6 +2,7 @@
 -@ val authors: Iterable[(prnd.Author, Boolean)]
 -@ val allowedGroups: Set[prnd.WorkGroup] = Set()
 -import org.squeryl.PrimitiveTypeMode._
+-import scala.util.Sorting.stableSort
 -attributes("title") = it.title
 %h2 Заголовок
 %form(action="saveTitle")
@@ -16,11 +17,12 @@
 			= view(g)
 	%input(type="submit" value="Сохранить группы")
 
-%h2 Издатели
+%h2 Издания
 %form(action="addPublisher")
 	%h3 Удалить
 	-for(p:prnd.PublisherToPublication <- it.publishers.associations)
 		%input(type="checkbox" name={"p_"+p.publisherId}) = view(p)
+		%br
 	%input(type="submit" name="delete" value="Удалить издателя")
 	%h3 Добавить
 	Тип издания:
@@ -28,6 +30,7 @@
 		-for (p <- prnd.PublicationType.values)
 			%option(value={p.id})
 				= p.toString
+	Издательство:
 	%select(name="publisherId")
 		-for (p <- from(prnd.Schema.publishers)(select(_)))
 			%option(value={p.id})
@@ -45,7 +48,9 @@
 %h2 Авторы
 %form(action="saveAuthors")
 	%ul
-		-for (pair <- authors)
+		-val authorsSorted = authors.toArray
+		-stableSort(authorsSorted, (p:(prnd.Author, Boolean)) => (!p._2, p._1.name))
+		-for (pair <- authorsSorted)
 			%li 
 				%input(type="checkbox" name={"a_"+pair._1.id} checked={pair._2})
 					= view(pair._1)		
