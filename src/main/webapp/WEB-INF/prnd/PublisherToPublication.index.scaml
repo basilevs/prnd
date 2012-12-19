@@ -1,5 +1,10 @@
 -@ val it: prnd.PublisherToPublication
 
 %a(href={request.getContextPath+"/publishers/"+it.publisherId})
+	= it.pubType.toString()
+	-if (it.publisher.isConference)
+		на
+	-else
+		в
 	= it.publisher.name
 

@@ -17,13 +17,12 @@
 	%input(type="submit" value="Сохранить группы")
 
 %h2 Издатели
-%h3 Удалить
-%form(action="deletePublishers")
+%form(action="addPublisher")
+	%h3 Удалить
 	-for(p:prnd.PublisherToPublication <- it.publishers.associations)
 		%input(type="checkbox" name={"p_"+p.publisherId}) = view(p)
-	%input(type="submit" value="Удалить отмеченных издателей")
-%h3 Добавить
-%form(action="addPublisher")
+	%input(type="submit" name="delete" value="Удалить издателя")
+	%h3 Добавить
 	Тип издания:
 	%select(name="pubType")
 		-for (p <- prnd.PublicationType.values)
@@ -33,7 +32,7 @@
 		-for (p <- from(prnd.Schema.publishers)(select(_)))
 			%option(value={p.id})
 				= p.name
-	%input(type="submit" value="Добавить издателя")
+	%input(type="submit" name="add" value="Добавить издателя")
 %h2 Год издания
 %form(action="saveYear")
 	%input(type="text" size="4" name="year" value={if (it.year == 0) "" else ""+it.year})
@@ -44,7 +43,7 @@
 	%input(type="submit" value="Сохранить число авторов")
 
 %h2 Авторы
-%form(action="saveAuthorCount")
+%form(action="saveAuthors")
 	%ul
 		-for (pair <- authors)
 			%li 

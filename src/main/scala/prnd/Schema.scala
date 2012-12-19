@@ -63,7 +63,7 @@ object Schema extends SSchema {
 		pr("Nucl.Instrum.Meth.A", 1.142F)
 		pr("arXiv", 6F)
 		pr("Chin.Phys.C", 1.343F)
-		pr("PoS", 0)
+		pr("PoS", 0.2F)
 		pr("INP", 6F, false)
 		pr("Eur.Phys.J.C", 3.248F)
 		pr("JHEP", 6.049F)
@@ -181,7 +181,7 @@ class Publisher(var name: String, var impact:Float, var isConference:Boolean = f
 		if (isConference) {
 			Set(Invited, Oral, Stand)
 		} else {
-			Set(Article)
+			Set(Article, Preprint)
 		}
 	}
 	lazy val publications = Schema.publisherToPublications.left(this)
@@ -207,6 +207,7 @@ object PublicationType extends Enumeration {
 	val Invited = Value(2, "Приглашенный доклад")
 	val Oral = Value(3, "Устный доклад")
 	val Stand = Value(4, "Стэндовый доклад")
+	val Preprint = Value(5, "Препринт")
 }
 
 class PublisherToPublication(var pubType: PublicationType.Type) extends KeyedEntity[CompositeKey2[Int,Int]] {
@@ -223,6 +224,7 @@ class PublisherToPublication(var pubType: PublicationType.Type) extends KeyedEnt
 			case Invited => if (publisher.international) 45 else 30
 			case Oral => if (publisher.international) 15 else 10
 			case Stand => if (publisher.international) 5 else 3	
+			case Preprint => 6 / (if (publication.authorCount<10) publication.authorCount else 10) 
 		}
 	}
 }

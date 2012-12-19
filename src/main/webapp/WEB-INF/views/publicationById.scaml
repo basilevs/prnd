@@ -7,8 +7,8 @@
 		%a(href={it.id+"/edit"}) Редактировать
 %p 
 	Издатели:
-	- for (publisher <- it.publishers)
-		= view(publisher)
+	- for ((publisher, ass) <- it.publishers.associationMap)
+		= view(ass)
 	
 %p
 	Год издания:

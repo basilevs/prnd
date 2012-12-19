@@ -38,7 +38,7 @@ class Publications extends Servlet {
 		def similarTitle(title:String) = {
 			fields.size == 0 || !fields.exists(title.indexOf(_) == -1)
 		}
-		Session.currentSession.setLogger(println(_))
+//		Session.currentSession.setLogger(println(_))
 		val year:Int = it.year
 //		println("Similar publications "+publisher)
 		val query1:Queryable[Publication] = if (it.year == 0)
@@ -143,6 +143,16 @@ class Publications extends Servlet {
 	get("/:id/saveYear") { handleExceptions { transactionOrRedirect("edit") {
 			val p = currentPublication 
 			try {
+				p.authorCount = params("authorCount").toInt
+			} catch {
+				case e: NumberFormatException => Option(new BadInput("Неверно введено число авторов: "+params("authorCount"), e))
+			}
+			Schema.publications.update(p)
+			None
+	}}}
+	get("/:id/saveAuthorCount") { handleExceptions { transactionOrRedirect("edit") {
+			val p = currentPublication 
+			try {
 				p.year = params("year").toInt
 			} catch {
 				case e: NumberFormatException => Option(new BadInput("Неверно введен год: "+params("year"), e))
@@ -156,21 +166,26 @@ class Publications extends Servlet {
 		updateAssociations("g_", groupsModifiableByCurrentUser, it.groups)
 		None
 	}}}
-
-	get("/:id/deletePublishers") { handleExceptions { transactionOrRedirect("edit") {
+	get("/:id/saveAuthors") { handleExceptions { transactionOrRedirect("edit") {
 		val it = currentPublicationEditable
-		deleteAssociations("p_", it.publishers.toSet, it.publishers)
+		updateAssociations("a_", Schema.authors, it.groups)
 		None
 	}}}
-
 	get("/:id/addPublisher") { handleExceptions { transactionOrRedirect("edit") {
+		println(params)
 		val it = currentPublicationEditable
-		val toAdd = new PublisherToPublication(PublicationType(params("pubType").toInt))
-		assert(toAdd.pubType.id != 0)
-		val publisherId = params("publisherId").toInt
-		if (it.publishers.associations.find(_.publisherId == publisherId).isEmpty) {			
-			val publisher = Schema.publishers.lookup(publisherId).get
-			it.publishers.associate(publisher, toAdd)
+		deleteAssociations("p_", it.publishers.toSet, it.publishers)
+		if (!params.contains("delete")) {
+			val pubType = PublicationType(params("pubType").toInt)
+			val toAdd = new PublisherToPublication(pubType)
+			assert(toAdd.pubType.id != 0)
+			val publisherId = params("publisherId").toInt
+			if (it.publishers.associations.find(_.publisherId == publisherId).isEmpty) {			
+				val publisher = Schema.publishers.lookup(publisherId).get
+				if (!publisher.allowedPublications.contains(pubType))
+					throw new BadInput(pubType.toString + " не может быть опубликован в " + publisher.name)
+				it.publishers.associate(publisher, toAdd)
+			}
 		}
 		None
 	}}}

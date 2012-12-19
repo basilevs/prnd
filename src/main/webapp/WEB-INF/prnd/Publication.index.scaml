@@ -2,8 +2,8 @@
 %a(href={request.getContextPath+"/publications/"+it.id})
 	= it.title
 ,
-- for (publisher <- it.publishers)
-	= view(publisher)
+- for ((publisher, ass) <- it.publishers.associationMap)
+	= view(ass)
 	,
 = it.year.toString
 
