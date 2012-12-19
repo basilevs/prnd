@@ -24,9 +24,9 @@ class Root extends Servlet {
 		}
 	}
 	get("/schemaDrop") {
+		if (! getInitParameter("allowSchemaDrop").toBoolean)
+			throw new Servlet.Denied("Forbidden")
 		transaction {
-			if (!initParameter("allowSchemaDrop").get.toBoolean)
-				throw new Servlet.Denied("Access forbidden.")
 			Schema.drop
 			Schema.create
 			Schema.addInitialEntries
