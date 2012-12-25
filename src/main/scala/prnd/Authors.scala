@@ -184,4 +184,10 @@ class Authors extends Servlet {
 			} getOrElse Option(resourceNotFound())
 		}
 	}
+	get("/prnd") {
+		transaction {
+			contentType = "text/html"
+			layoutTemplate("authorsWithPrnd")
+		}
+	}
 }

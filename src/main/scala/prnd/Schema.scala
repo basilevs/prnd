@@ -162,7 +162,7 @@ class Author(var name:String, var inspireName:String = "") extends KeyedEntity[I
 	lazy val subordinates = Schema.authorToSubordinates.left(this)
 	lazy val extras = Schema.authorToExtra.left(this)
 	lazy val groups = Schema.authorToGroup.left(this)
-	def cost:Float = publications.map(_.cost).sum + subordinates.map(_.cost).sum + extras.map(_.cost).sum	
+	def cost = {publications.map(_.cost).sum + subordinates.map(_.cost).sum + extras.map(_.cost).sum}
 }
 
 class Authorship extends KeyedEntity[CompositeKey2[Int,Int]] {

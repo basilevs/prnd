@@ -1,0 +1,11 @@
+- attributes("title") = "Авторы"
+-import scala.util.Sorting.stableSort
+-import org.squeryl.PrimitiveTypeMode._
+- val authors = prnd.Schema.authors.toArray
+- stableSort(authors, (a:prnd.Author) => a.name)
+%ul
+	- for (a <- authors)
+		%li
+			- view(a)
+			ПРНД:
+			= a.cost
