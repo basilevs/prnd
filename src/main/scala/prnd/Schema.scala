@@ -162,6 +162,7 @@ class Author(var name:String, var inspireName:String = "") extends KeyedEntity[I
 	lazy val subordinates = Schema.authorToSubordinates.left(this)
 	lazy val extras = Schema.authorToExtra.left(this)
 	lazy val groups = Schema.authorToGroup.left(this)
+	def cost:Float = publications.map(_.cost).sum + subordinates.map(_.cost).sum + extras.map(_.cost).sum	
 }
 
 class Authorship extends KeyedEntity[CompositeKey2[Int,Int]] {
@@ -268,7 +269,17 @@ object SubordinateStatus extends Enumeration {
 class Subordinate (val name:String, val status:SubordinateStatus.Type, val year:Int, val coLeadCount:Int) extends KeyedEntity[Int] with Cost {
 	def this() = this("", SubordinateStatus.Magistrant, 0, 0)
 	val id = 0
-	def cost = 0F
+	def cost = {
+		import SubordinateStatus._
+		val tmp: Float = (status match {
+			case Dissertant => 30
+			case Diplomant => 10
+			case Aspirant => 6
+			case Magistrant => 3
+			case DisOunsil => 20
+		})
+		tmp / coLeadCount
+	}
 	val authorId = 0
 }
 

@@ -6,6 +6,8 @@
 -if (editable)
 	%p
 		%a(href={it.id+"/edit"}) Изменить
+Итоговый балл ПРНД:
+= it.cost
 %h2 Группы
 %p
 	-for(g <- it.groups)

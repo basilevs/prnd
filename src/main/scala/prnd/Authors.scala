@@ -3,14 +3,16 @@ import org.scalatra.UrlGenerator.url
 import java.net.URL
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.Session
+import scala.util.Sorting.stableSort
 
 class Authors extends Servlet {
 	get("/") {
 		transaction {
-			val authors:Iterable[Author] = Schema.authors
+			val authors:Array[Author] = Schema.authors.toArray
+			stableSort(authors, (a:Author) => a.name)
 			assert(authors != null)
 			contentType = "text/html"
-			layoutTemplate("authors", "authors" -> authors)
+			layoutTemplate("authors", "authors" -> authors.toIterable)
 		}
 	}
 	def isAuthorEditable(a:Author) = {

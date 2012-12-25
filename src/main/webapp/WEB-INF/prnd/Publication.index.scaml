@@ -2,9 +2,8 @@
 %a(href={request.getContextPath+"/publications/"+it.id})
 	= it.title
 ,
-- for ((publisher, ass) <- it.publishers.associationMap)
-	= view(ass)
-	,
 = it.year.toString
+,
+= collection(it.publishers.associationMap.map { case (p, ass) => ass }, separator = ",")
 
 
