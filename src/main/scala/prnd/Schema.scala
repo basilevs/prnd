@@ -42,6 +42,8 @@ object Schema extends SSchema {
 		.via[AuthorToGroup]( (a, g, ag) => (a.id === ag.authorId, ag.groupId === g.id) )
 	val publicationToGroup = manyToManyRelation[Publication, WorkGroup, PublicationToGroup](publications, groups)
 		.via[PublicationToGroup]( (a, g, ag) => (a.id === ag.publicationId, ag.groupId === g.id) )
+	publicationToGroup.leftForeignKeyDeclaration.constrainReference(onDelete cascade)
+	publicationToGroup.rightForeignKeyDeclaration.constrainReference(onDelete cascade)
 
 	def addPermanentEntries {
 		
