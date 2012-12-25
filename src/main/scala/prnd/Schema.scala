@@ -225,7 +225,7 @@ class PublisherToPublication(var pubType: PublicationType.Type) extends KeyedEnt
 			case Invited => if (publisher.international) 45 else 30
 			case Oral => if (publisher.international) 15 else 10
 			case Stand => if (publisher.international) 5 else 3	
-			case Preprint => 6 / (if (publication.authorCount<10) publication.authorCount else 10) 
+			case Preprint => 6F / (if (publication.authorCount<10) publication.authorCount else 10) 
 		}
 	}
 }
