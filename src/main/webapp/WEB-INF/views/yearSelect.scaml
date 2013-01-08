@@ -5,6 +5,6 @@
 		%option(value="") Любой
 	- import java.util.Calendar
 	- val currentYear:Int = Calendar.getInstance.get(Calendar.YEAR)
-	-for (t <- Seq(currentYear-1, currentYear-2))
+	-for (t <- Seq(currentYear-1, currentYear-2, currentYear-3))
 		%option(value={t.toString} selected={defaultYear == t})
 			= t.toString
