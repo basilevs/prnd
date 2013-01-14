@@ -3,7 +3,7 @@ import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.{Schema => SSchema, KeyedEntity, ForeignKeyDeclaration}
 import org.squeryl.dsl.{CompositeKey2}
 import org.squeryl.annotations.Column
-
+import java.util.Calendar
 
 object Schema extends SSchema {
 	override def applyDefaultForeignKeyPolicy(foreignKeyDeclaration: ForeignKeyDeclaration) = foreignKeyDeclaration.constrainReference
@@ -164,7 +164,20 @@ class Author(var name:String, var inspireName:String = "") extends KeyedEntity[I
 	lazy val subordinates = Schema.authorToSubordinates.left(this)
 	lazy val extras = Schema.authorToExtra.left(this)
 	lazy val groups = Schema.authorToGroup.left(this)
-	def cost = {publications.map(_.cost).sum + subordinates.map(_.cost).sum + extras.map(_.cost).sum}
+	private def activeYear = {
+		val targetDate = Calendar.getInstance
+		targetDate.add(Calendar.MONTH, -21)
+		targetDate.get(Calendar.YEAR)
+	}
+	lazy val activePublications = {
+		println("Active year " + activeYear)
+		from(publications)(p => where(p.year === activeYear or p.year === activeYear - 1) select(p))
+	}
+	lazy val activeSubordinates = from(subordinates)(p => where(p.year === activeYear or p.year === activeYear - 1) select(p))
+	lazy val activeExtras = from(extras)(p => where(p.year === activeYear or p.year === activeYear - 1) select(p))
+	def cost = {
+		activePublications.map(_.cost).sum + activeSubordinates.map(_.cost).sum + activeExtras.map(_.cost).sum
+	}
 }
 
 class Authorship extends KeyedEntity[CompositeKey2[Int,Int]] {

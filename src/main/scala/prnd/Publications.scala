@@ -3,6 +3,7 @@ import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.{Queryable, Query}
 import org.squeryl.Session
 import java.util.Calendar
+import scala.util.Sorting.stableSort
 
 class Publications extends Servlet {
 	def authorsModifiableByCurrentUser:Set[Author] = {
@@ -65,9 +66,11 @@ class Publications extends Servlet {
 			contentType = "text/html"
 			val it = getPublication
 			val publisher = getPublisher
+			val publs  = similarPublications(it, publisher.toSet).toArray
+			stableSort(publs, (p:Publication) => p.title)
 			layoutTemplate("publications",
 				"it"->it,
-				"publications" -> similarPublications(it, publisher.toSet),
+				"publications" -> publs.toSeq,
 				"publisherId" -> publisher.map(_.id)
 			)
 		}

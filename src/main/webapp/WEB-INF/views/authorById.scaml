@@ -1,6 +1,5 @@
 -@ val it: prnd.Author
 -@ val editable:Boolean = true
--val publications = it.publications
 - attributes("title") = it.name
 
 -if (editable)
@@ -15,12 +14,12 @@
 %h2
 	Публикации
 %ul
-	-for (p <- publications)
+	-for (p <- it.activePublications)
 		%li
 			= view(p)
 
 %a(name="subordinates")
--val s = it.subordinates.toSeq
+-val s = it.activeSubordinates.toSeq
 -if (s.size > 0)
 	%h2 Научное руководство
 	%ul
@@ -29,7 +28,7 @@
 				= view(i)
 
 %a(name="extra")
--val e = it.extras.toSeq
+-val e = it.activeExtras.toSeq
 -if (e.size > 0)
 	%h2 Остальное
 	%ul
