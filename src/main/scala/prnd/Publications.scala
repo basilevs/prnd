@@ -67,7 +67,7 @@ class Publications extends Servlet {
 			val it = getPublication
 			val publisher = getPublisher
 			val publs  = similarPublications(it, publisher.toSet).toArray
-			stableSort(publs, (p:Publication) => p.title)
+			stableSort(publs, (p:Publication) => (p.year, p.title))
 			layoutTemplate("publications",
 				"it"->it,
 				"publications" -> publs.toSeq,
