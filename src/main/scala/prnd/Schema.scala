@@ -166,7 +166,7 @@ class Author(var name:String, var inspireName:String = "") extends KeyedEntity[I
 	lazy val groups = Schema.authorToGroup.left(this)
 	private def activeYear = {
 		val targetDate = Calendar.getInstance
-		targetDate.add(Calendar.MONTH, -21)
+		targetDate.add(Calendar.MONTH, -9)
 		targetDate.get(Calendar.YEAR)
 	}
 	lazy val activePublications = {
