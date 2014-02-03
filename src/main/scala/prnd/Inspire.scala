@@ -25,7 +25,13 @@ class Inspire(val author:Author, year:Int) {
 		j.get
 	}
 	//Use inside transaction
-	def run: Seq[Exception] = saveArticles(getBibtex)
+	def run: Seq[Exception] = {
+		var names = author.inspireName.split(",")
+		def processName(name:String) = {
+			saveArticles(getBibtex(name))
+		}
+		names.flatMap(processName)
+	}
 	type PublicationPublishers = (Publication, Seq[Publisher], Exception)
 	def saveArticles(publications:Iterable[PublicationPublishers]): Seq[Exception] = {
 		{for(pair <- publications) yield {
@@ -52,8 +58,8 @@ class Inspire(val author:Author, year:Int) {
 			}
 		}}.toSeq.filter(_!=null)
 	}
-	def getBibtex = {
-		var uri = new URI("http", "inspirehep.net", "/search", "p=author:\""+author.inspireName+"\"+AND+date:\""+year+"\"&of=hx&rg=200","")
+	def getBibtex(name:String) = {
+		var uri = new URI("http", "inspirehep.net", "/search", "p=author:\""+name.trim+"\"+AND+date:\""+year+"\"&of=hx&rg=200","")
 		println(uri)
 //		val stream = new FileInputStream(new File("search.htm"))
 		val stream = uri.toURL.openConnection.getInputStream
